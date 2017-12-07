@@ -64,9 +64,9 @@ public class Wireshark extends Application {
                         (device.getDescription() != null) ? device.getDescription()
                         : device.getName());
 
-        int snaplen = 1024 * 1024;           // Capture all packets, no trucation  
+        int snaplen = 64 * 1024;           // Capture all packets, no trucation  
         int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
-        int timeout = 60 * 1000;           // 10 seconds in millis  
+        int timeout = 60 * 1000;           // 60 seconds in millis  
         Pcap pcap
                 = Pcap.openLive(device.getName(), snaplen, flags, timeout, errbuf);
 
@@ -78,10 +78,11 @@ public class Wireshark extends Application {
 
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
+            Http http = new Http();
             @Override
             public void nextPacket(PcapPacket packet, String user) {
 
-                Http http = new Http();
+                //http example              
                 if (packet.hasHeader(http)) {
                     System.out.println(http.fieldValue(Request.Host));
                 }
