@@ -6,9 +6,9 @@
 package wireshark;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -32,14 +32,7 @@ import org.jnetpcap.protocol.tcpip.Tcp;
  */
 public class Wireshark extends Application {
 
-    @Override
-    public void start(Stage stage) throws Exception {
-//        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-//        
-//        Scene scene = new Scene(root);
-//        
-//        stage.setScene(scene);
-//        stage.show();
+    public void testCap() {
         List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs  
         StringBuilder errbuf = new StringBuilder(); // For any error msgs  
         int r = Pcap.findAllDevs(alldevs, errbuf);
@@ -59,11 +52,12 @@ public class Wireshark extends Application {
             System.out.printf("#%d: %s [%s]\n", i++, device.getName(), description);
         }
 
-        PcapIf device = alldevs.get(2); // We know we have atleast 1 device  
-        System.out
-                .printf("\nChoosing '%s' on your behalf:\n",
-                        (device.getDescription() != null) ? device.getDescription()
-                        : device.getName());
+        System.out.println("Enter Device number");
+        Scanner sc = new Scanner(System.in);
+        PcapIf device = alldevs.get(sc.nextInt()); // We know we have atleast 1 device  
+        System.out.printf("Choosing '%s':\n",
+                (device.getDescription() != null) ? device.getDescription()
+                : device.getName());
 
         int snaplen = 64 * 1024;           // Capture all packets, no trucation  
         int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
@@ -80,9 +74,11 @@ public class Wireshark extends Application {
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
             Http http = new Http();
+
             @Override
             public void nextPacket(PcapPacket packet, String user) {
-                //http example              
+                //http example  
+
                 if (packet.hasHeader(http)) {
                     System.out.println(http.toString());
                 }
@@ -97,6 +93,17 @@ public class Wireshark extends Application {
         };
 
         pcap.loop(10000, jpacketHandler, "hi");
+    }
+
+    @Override
+    public void start(Stage stage) throws Exception {
+//        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
+//        
+//        Scene scene = new Scene(root);
+//        
+//        stage.setScene(scene);
+//        stage.show();
+        testCap();
 
     }
 
