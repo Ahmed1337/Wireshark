@@ -6,6 +6,7 @@
 package wireshark;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import javafx.application.Application;
@@ -81,10 +82,9 @@ public class Wireshark extends Application {
             Http http = new Http();
             @Override
             public void nextPacket(PcapPacket packet, String user) {
-
                 //http example              
                 if (packet.hasHeader(http)) {
-                    System.out.println(http.fieldValue(Request.Host));
+                    System.out.println(http.toString());
                 }
 
 //                System.out.printf("Received packet at %s caplen=%-4d len=%-4d %s\n",
