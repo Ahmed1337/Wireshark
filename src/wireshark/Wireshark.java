@@ -15,8 +15,15 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapIf;
+import org.jnetpcap.packet.JHeader;
+import org.jnetpcap.packet.JHeaderPool;
+import org.jnetpcap.packet.JPacket;
+import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
+import org.jnetpcap.protocol.tcpip.Http;
+import org.jnetpcap.protocol.tcpip.Http.Request;
+import org.jnetpcap.protocol.tcpip.Tcp;
 
 /**
  *
@@ -35,7 +42,7 @@ public class Wireshark extends Application {
         List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs  
         StringBuilder errbuf = new StringBuilder(); // For any error msgs  
         int r = Pcap.findAllDevs(alldevs, errbuf);
-        if (r == Pcap.ERROR|| alldevs.isEmpty()) {
+        if (r == Pcap.ERROR || alldevs.isEmpty()) {
             System.err.printf("Can't read list of devices, error is %s", errbuf
                     .toString());
             return;
@@ -57,9 +64,9 @@ public class Wireshark extends Application {
                         (device.getDescription() != null) ? device.getDescription()
                         : device.getName());
 
-        int snaplen = 64 * 1024;           // Capture all packets, no trucation  
+        int snaplen = 1024 * 1024;           // Capture all packets, no trucation  
         int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
-        int timeout = 10 * 1000;           // 10 seconds in millis  
+        int timeout = 60 * 1000;           // 10 seconds in millis  
         Pcap pcap
                 = Pcap.openLive(device.getName(), snaplen, flags, timeout, errbuf);
 
@@ -71,17 +78,24 @@ public class Wireshark extends Application {
 
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
+            @Override
             public void nextPacket(PcapPacket packet, String user) {
 
-                System.out.printf("Received packet at %s caplen=%-4d len=%-4d %s\n",
-                        new Date(packet.getCaptureHeader().timestampInMillis()),
-                        packet.getCaptureHeader().caplen(), // Length actually captured  
-                        packet.getCaptureHeader().wirelen(), // Original length   
-                        user // User supplied object  
-                );
+                Http http = new Http();
+                if (packet.hasHeader(http)) {
+                    System.out.println(http.fieldValue(Request.Host));
+                }
+
+//                System.out.printf("Received packet at %s caplen=%-4d len=%-4d %s\n",
+//                        new Date(packet.getCaptureHeader().timestampInMillis()),
+//                        packet.getCaptureHeader().caplen(), // Length actually captured  
+//                        packet.getCaptureHeader().wirelen(), // Original length   
+//                        user // User supplied object  
+//                );
             }
         };
-        pcap.loop(100, jpacketHandler, "hi");
+
+        pcap.loop(10000, jpacketHandler, "hi");
 
     }
 
