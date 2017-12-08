@@ -29,6 +29,7 @@ import org.jnetpcap.protocol.network.Ip4;
 import org.jnetpcap.protocol.tcpip.Udp;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.jnetpcap.protocol.lan.Ethernet;
 import org.jnetpcap.protocol.network.Arp;
 
@@ -129,6 +130,16 @@ public class Wireshark extends Application {
                         row.put(Wireshark.Protocol, "TCP");
                         if (packet.hasHeader(http) && !http.isResponse()) {
                             row.put(Wireshark.Protocol, "HTTP");
+                        }else{
+                            int contentLength = Integer.parseInt(http.fieldValue(Http.Response.Content_Length));
+                            if(http.getPayload().length<contentLength){
+                                HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength()+tcp.getPayloadOffset(), contentLength, http.getPayload());
+                            }
+                        }
+                        String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadOffset()+tcp.getPayloadLength(), number, tcp.getPayload());
+                        if(str!=null){
+                            System.out.println(str);
+                            row.put(Wireshark.Protocol, "HTTP");
                         }
                     }
                 }
@@ -137,7 +148,7 @@ public class Wireshark extends Application {
             }
         };
 
-        pcap.loop(10, jpacketHandler, "hi");
+        pcap.loop(1000, jpacketHandler, "hi");
         int ll = 0;
         for (HashMap<String, String> row : rows) {
             System.out.println(detailedView.get(ll));;
