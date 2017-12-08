@@ -16,7 +16,7 @@ public class HttpHandler {
     
     public static void initiateHttpPacket(int tcpPacketNumber, long seqNumber, int tcpPacketLength, int httpContentLength, byte[] httpPayload) {
         httpPackets.put((seqNumber + tcpPacketLength) + "", new HttpHelperData(httpContentLength, tcpPacketNumber, httpPayload));
-        System.out.println("Expected seq No." + (seqNumber + tcpPacketLength));
+        //System.out.println("Expected seq No." + (seqNumber + tcpPacketLength));
     }
 
     public static String handleForHttpIfExpected(long expectedSeqNum, int tcpPacketLength, int num, byte[] contentPiece) {

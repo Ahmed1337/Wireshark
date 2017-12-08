@@ -14,10 +14,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
@@ -26,6 +29,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.InputEvent;
+import javafx.stage.WindowEvent;
 
 /**
  *
@@ -47,7 +52,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private TableView table;
 
-    private static int MENUHEIGHT = 25;
+    private static final int MENUHEIGHT = 25;
 
     private ObservableList<TableItem> tableData;
     @FXML
@@ -56,28 +61,76 @@ public class FXMLDocumentController implements Initializable {
     private TextArea hexView;
 
     @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private Button restartButton;
+    private Capturer capturer;
+
+    private int deviceNumber;
+
+    private void disableButtons(boolean start, boolean stop) {
+        startButton.setDisable(start);
+        stopButton.setDisable(stop);
+        restartButton.setDisable(stop);
+    }
+
+    @FXML
+    private void handleStartButton(Event event) {
+        tableData = FXCollections.observableArrayList();
+        table.setItems(tableData);
+        capturer = new Capturer(this);
+        capturer.getDevices();
+        this.startCapturing();
+        disableButtons(true, false);
+    }
+
+    @FXML
+    private void handleStopButton(Event event) {
+        capturer.stopCapturing();
+        disableButtons(false, true);
+    }
+
+    @FXML
+    private void handleRestartButton(Event event) {
+        handleStopButton(event);
+        handleStartButton(event);
+    }
+
+    @FXML
     private void handleMouseClicked(MouseEvent click) {
         if (click.getClickCount() == 2) {
             //choose device by index
-            label.setText(list.getSelectionModel().getSelectedIndex() + "");
+            deviceNumber = list.getSelectionModel().getSelectedIndex();
+            if (deviceNumber == -1) {
+                return;
+            }
+            startCapturing();
             captureVBox.setVisible(false);
             vbox2.setVisible(true);
             anchorPane.setPrefSize(vbox2.getPrefWidth(), vbox2.getPrefHeight() + MENUHEIGHT); //majornelson <3
             anchorPane.getScene().getWindow().sizeToScene();
             anchorPane.getScene().getWindow().centerOnScreen();
-            addToTable(Arrays.asList(new String[]{"1", "1", "2", "2", "3", "3", "4"}));
-            addToTable(Arrays.asList(new String[]{"1", "1", "2", "2", "3", "3", "4"}));
+            anchorPane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    capturer.stopCapturing();
+                }
+
+            }
+            );
         }
     }
 
     @FXML
-    private void handleTableMouseClick(MouseEvent Click) {
+    private void handleTableMouseClick(Event Click) {
 
         try {
             int packetNumber = Integer.parseInt(tableData.get(table.getSelectionModel().getSelectedIndex()).getNo());
             //String [][] detailedData = getDetailedData(packetNumber);
             //setAccordion(delatiledData);
-            //hexView.setText(getHex(packetNumber));
+            hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
         }
     }
@@ -89,11 +142,27 @@ public class FXMLDocumentController implements Initializable {
         anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
-        list.setItems(FXCollections.observableArrayList("Single", "Double", "Suite", "Family App"));
+        capturer = new Capturer(this);
+        list.setItems(FXCollections.observableList(capturer.getDevices()));
+    }
+
+    private void startCapturing() {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                capturer.startCapturing(deviceNumber);
+            }
+
+        });
+        t.start();
     }
 
     protected void addToTable(List<String> row) {
-        tableData.add(new TableItem(row));
+        if (row.size() == 7) {
+            tableData.add(new TableItem(row));
+        } else {
+            System.out.println(Arrays.toString(row.toArray()));
+        }
 
     }
 
@@ -108,6 +177,7 @@ public class FXMLDocumentController implements Initializable {
                 titledPane.setVisible(false);
             }
             i++;
+
         }
     }
 
@@ -123,7 +193,7 @@ public class FXMLDocumentController implements Initializable {
 
         private TableItem(List<String> data) {
             no = new SimpleStringProperty(data.get(0));
-            time = new SimpleStringProperty(data.get(1));
+            time = new SimpleStringProperty(data.get(1).substring(0, data.get(1).indexOf(".") + 6));
             source = new SimpleStringProperty(data.get(2));
             destination = new SimpleStringProperty(data.get(3));
             protocol = new SimpleStringProperty(data.get(4));
