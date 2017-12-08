@@ -39,13 +39,6 @@ import org.jnetpcap.protocol.network.Arp;
  */
 public class Wireshark extends Application {
 
-    public static final String Number = "Number";
-    public static final String Time = "Time";
-    public static final String Source = "Source";
-    public static final String Destination = "Destination";
-    public static final String Protocol = "Protocol";
-    public static final String totalSize = "totalSize";
-
     public static ArrayList<ArrayList<String>> rows = new ArrayList<>();
     public static ArrayList<String> detailedView = new ArrayList<>();
     public static ArrayList<String> hexaView = new ArrayList<>();
@@ -127,19 +120,19 @@ public class Wireshark extends Application {
                         row.add("UDP");
                     } else if (packet.hasHeader(tcp)) {
                         row.add("TCP");
-                        int tcpPacketLength = tcp.getLength() + tcp.getPostfixLength() + tcp.getPrefixLength() + tcp.getPayloadLength();
                         if (packet.hasHeader(http)) {
                             if (!http.isResponse()) {
                                 row.add("HTTP");
                             } else {
-                                int contentLength = Integer.parseInt(http.fieldValue(Http.Response.Content_Length));
-
+                                int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
                                 if (http.getPayload().length < contentLength) {
-                                    HttpHandler.initiateHttpPacket(number, tcp.seq(), tcpPacketLength, contentLength, http.getPayload());
+                                    HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
+                                } else {
+                                    row.add("HTTP");
                                 }
                             }
                         }
-                        String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcpPacketLength, number, tcp.getPayload());
+                        String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
                         if (str != null) {
                             //System.out.println(str);
                             row.add("HTTP");
@@ -162,12 +155,12 @@ public class Wireshark extends Application {
 
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-        
+
         Scene scene = new Scene(root);
-        
+
         stage.setScene(scene);
         stage.show();
-//        testCap();
+        //        testCap();
 
     }
 
