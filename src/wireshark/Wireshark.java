@@ -128,16 +128,21 @@ public class Wireshark extends Application {
                         row.put(Wireshark.Protocol, "UDP");
                     } else if (packet.hasHeader(tcp)) {
                         row.put(Wireshark.Protocol, "TCP");
-                        if (packet.hasHeader(http) && !http.isResponse()) {
-                            row.put(Wireshark.Protocol, "HTTP");
-                        }else{
-                            int contentLength = Integer.parseInt(http.fieldValue(Http.Response.Content_Length));
-                            if(http.getPayload().length<contentLength){
-                                HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength()+tcp.getPayloadOffset(), contentLength, http.getPayload());
+                        int tcpPacketLength = tcp.getLength()+tcp.getPostfixLength()+tcp.getPrefixLength()+tcp.getPayloadLength();
+                        if (packet.hasHeader(http)) {
+                            if (!http.isResponse()) {
+                                row.put(Wireshark.Protocol, "HTTP");
+                            } else {
+                                
+                                int contentLength = Integer.parseInt(http.fieldValue(Http.Response.Content_Length));
+                                
+                                if (http.getPayload().length < contentLength) {
+                                    HttpHandler.initiateHttpPacket(number, tcp.seq(), tcpPacketLength, contentLength, http.getPayload());
+                                }
                             }
                         }
-                        String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadOffset()+tcp.getPayloadLength(), number, tcp.getPayload());
-                        if(str!=null){
+                        String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcpPacketLength, number, tcp.getPayload());
+                        if (str != null) {
                             System.out.println(str);
                             row.put(Wireshark.Protocol, "HTTP");
                         }
@@ -152,7 +157,7 @@ public class Wireshark extends Application {
         int ll = 0;
         for (HashMap<String, String> row : rows) {
             System.out.println(detailedView.get(ll));;
-            for(String value : row.values()) {
+            for (String value : row.values()) {
                 System.out.println(value);
             }
             ll++;
@@ -161,6 +166,7 @@ public class Wireshark extends Application {
     }
 
     @Override
+
     public void start(Stage stage) throws Exception {
 //        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
 //        
