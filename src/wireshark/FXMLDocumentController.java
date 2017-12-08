@@ -66,6 +66,19 @@ public class FXMLDocumentController implements Initializable {
             anchorPane.getScene().getWindow().sizeToScene();
             anchorPane.getScene().getWindow().centerOnScreen();
             addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
+            addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
+        }
+    }
+
+    @FXML
+    private void handleTableMouseClick(MouseEvent Click) {
+
+        try {
+            int packetNumber = Integer.parseInt(tableData.get(table.getSelectionModel().getSelectedIndex()).getNo());
+            //String [][] detailedData = getDetailedData(packetNumber);
+            //setAccordion(delatiledData);
+            //hexView.setText(getHex(packetNumber));
+        } catch (Exception e) {
         }
     }
 
@@ -77,7 +90,6 @@ public class FXMLDocumentController implements Initializable {
         anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
-
     }
 
     private void addToTable(String[] row) {
