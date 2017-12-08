@@ -115,7 +115,7 @@ public class Wireshark extends Application {
         Scene scene = new Scene(root);
 
         stage.setScene(scene);
-        stage.setTitle("WIRESHARKELGAMEDFSH5");
+        stage.setTitle("WIRESHARKELGAMED");
         stage.sizeToScene();
         stage.centerOnScreen();
         stage.show();
