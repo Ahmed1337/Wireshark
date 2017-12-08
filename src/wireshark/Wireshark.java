@@ -13,7 +13,9 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ListView;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.JHeader;
@@ -22,6 +24,7 @@ import org.jnetpcap.packet.JPacket;
 import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
+import org.jnetpcap.protocol.network.Ip4;
 import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Http.Request;
 import org.jnetpcap.protocol.tcpip.Tcp;
@@ -54,7 +57,7 @@ public class Wireshark extends Application {
 
         System.out.println("Enter Device number");
         Scanner sc = new Scanner(System.in);
-        PcapIf device = alldevs.get(sc.nextInt()); // We know we have atleast 1 device  
+        PcapIf device = alldevs.get(sc.nextInt());
         System.out.printf("Choosing '%s':\n",
                 (device.getDescription() != null) ? device.getDescription()
                 : device.getName());
@@ -75,12 +78,22 @@ public class Wireshark extends Application {
 
             Http http = new Http();
 
+            Tcp tcp = new Tcp();
+            Ip4 ip = new Ip4();
+
+            long millis = System.currentTimeMillis();
             @Override
             public void nextPacket(PcapPacket packet, String user) {
                 //http example  
 
+                byte[] data;
                 if (packet.hasHeader(http)) {
-                    System.out.println(http.toString());
+                    data = packet.getByteArray(0, packet.size());
+//                    System.out.println(new String(http.getPayload()));
+//                    System.out.println(new String(data));
+                    //System.out.println(new String(data, 20, data.length - 20));
+                    System.out.println(packet.getCaptureHeader().timestampInMillis() - millis);
+
                 }
 
 //                System.out.printf("Received packet at %s caplen=%-4d len=%-4d %s\n",
@@ -97,14 +110,18 @@ public class Wireshark extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-//        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-//        
-//        Scene scene = new Scene(root);
-//        
-//        stage.setScene(scene);
-//        stage.show();
-        testCap();
+        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
 
+        Scene scene = new Scene(root);
+
+        stage.setScene(scene);
+        stage.setTitle("WIRESHARKELGAMEDFSH5");
+        stage.sizeToScene();
+        stage.centerOnScreen();
+        stage.show();
+
+//
+//        testCap();
     }
 
 }
