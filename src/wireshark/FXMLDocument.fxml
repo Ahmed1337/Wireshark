@@ -59,7 +59,7 @@
                <children>
                   <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="230.0" prefWidth="917.0">
                      <content>
-                        <TableView prefHeight="200.0" prefWidth="915.0">
+                        <TableView fx:id="table" prefHeight="200.0" prefWidth="915.0">
                           <columns>
                             <TableColumn prefWidth="75.0" text="No." />
                             <TableColumn prefWidth="91.0" text="Time" />
@@ -90,7 +90,7 @@
                   </ScrollPane>
                   <ScrollPane fitToHeight="true" fitToWidth="true" prefWidth="935.0">
                      <content>
-                        <TextArea prefHeight="231.0" prefWidth="739.0" />
+                        <TextArea fx:id="textArea" prefHeight="231.0" prefWidth="739.0" />
                      </content>
                   </ScrollPane>
                </children>
