@@ -46,7 +46,7 @@ public class Wireshark extends Application {
     public static final String Protocol = "Protocol";
     public static final String totalSize = "totalSize";
 
-    public static ArrayList<HashMap<String, String>> rows = new ArrayList<>();
+    public static ArrayList<ArrayList<String>> rows = new ArrayList<>();
     public static ArrayList<String> detailedView = new ArrayList<>();
     public static ArrayList<String> hexaView = new ArrayList<>();
     public static int number = 0;
@@ -98,44 +98,42 @@ public class Wireshark extends Application {
 
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
+            private Ethernet eth = new Ethernet();
+            private Http http = new Http();
+            private Tcp tcp = new Tcp();
+            private Ip4 ip = new Ip4();
+            private Arp arp = new Arp();
+            private Udp udp = new Udp();
+
             @Override
             public void nextPacket(PcapPacket packet, String user) {
                 //http example  
-
-                Ethernet eth = new Ethernet();
-                Http http = new Http();
-                Tcp tcp = new Tcp();
-                Ip4 ip = new Ip4();
-                Arp arp = new Arp();
-                Udp udp = new Udp();
-                HashMap<String, String> row = new HashMap<>();
+                ArrayList<String> row = new ArrayList<>();
+                rows.add(row);
                 if ((packet.hasHeader(arp) && packet.hasHeader(eth)) || (packet.hasHeader(ip) && (packet.hasHeader(tcp) || packet.hasHeader(udp)))) {
                     Wireshark.detailedView.add(packet.toString());
                     Wireshark.hexaView.add(packet.toHexdump());
-                    Wireshark.rows.add(row);
-                    row.put(Wireshark.Number, Wireshark.number + "");
-                    row.put(Wireshark.Time, (Wireshark.getCurrentTime() - Wireshark.startTimeInSeconds) + "");
-                    row.put(Wireshark.totalSize, packet.getTotalSize() + "");
+                    row.add(Wireshark.number + "");
+                    row.add((Wireshark.getCurrentTime() - Wireshark.startTimeInSeconds) + "");
                 }
                 if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
-                    row.put(Wireshark.Source, FormatUtils.mac(eth.source()));
-                    row.put(Wireshark.Destination, FormatUtils.mac(eth.destination()));
-                    row.put(Wireshark.Protocol, "ARP");
+                    row.add(FormatUtils.mac(eth.source()));
+                    row.add(FormatUtils.mac(eth.destination()));
+                    row.add("ARP");
                 } else if (packet.hasHeader(ip)) {
-                    row.put(Wireshark.Source, FormatUtils.ip(ip.source()));
-                    row.put(Wireshark.Destination, FormatUtils.ip(ip.destination()));
+                    row.add(FormatUtils.ip(ip.source()));
+                    row.add(FormatUtils.ip(ip.destination()));
                     if (packet.hasHeader(udp)) {
-                        row.put(Wireshark.Protocol, "UDP");
+                        row.add("UDP");
                     } else if (packet.hasHeader(tcp)) {
-                        row.put(Wireshark.Protocol, "TCP");
-                        int tcpPacketLength = tcp.getLength()+tcp.getPostfixLength()+tcp.getPrefixLength()+tcp.getPayloadLength();
+                        row.add("TCP");
+                        int tcpPacketLength = tcp.getLength() + tcp.getPostfixLength() + tcp.getPrefixLength() + tcp.getPayloadLength();
                         if (packet.hasHeader(http)) {
                             if (!http.isResponse()) {
-                                row.put(Wireshark.Protocol, "HTTP");
+                                row.add("HTTP");
                             } else {
-                                
                                 int contentLength = Integer.parseInt(http.fieldValue(Http.Response.Content_Length));
-                                
+
                                 if (http.getPayload().length < contentLength) {
                                     HttpHandler.initiateHttpPacket(number, tcp.seq(), tcpPacketLength, contentLength, http.getPayload());
                                 }
@@ -143,38 +141,33 @@ public class Wireshark extends Application {
                         }
                         String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcpPacketLength, number, tcp.getPayload());
                         if (str != null) {
-                            System.out.println(str);
-                            row.put(Wireshark.Protocol, "HTTP");
+                            //System.out.println(str);
+                            row.add("HTTP");
                         }
                     }
                 }
 
+                row.add(packet.getTotalSize() + "");
+                row.add("");
                 number++;
+                //addRow(row);
             }
         };
 
         pcap.loop(1000, jpacketHandler, "hi");
-        int ll = 0;
-        for (HashMap<String, String> row : rows) {
-            System.out.println(detailedView.get(ll));;
-            for (String value : row.values()) {
-                System.out.println(value);
-            }
-            ll++;
-            System.out.println("\n\n\n");
-        }
+
     }
 
     @Override
 
     public void start(Stage stage) throws Exception {
-//        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-//        
-//        Scene scene = new Scene(root);
-//        
-//        stage.setScene(scene);
-//        stage.show();
-        testCap();
+        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
+        
+        Scene scene = new Scene(root);
+        
+        stage.setScene(scene);
+        stage.show();
+//        testCap();
 
     }
 

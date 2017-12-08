@@ -12,9 +12,9 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.cell.PropertyValueFactory?> 
 
 <AnchorPane fx:id="anchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="648.0" prefWidth="873.0" style="-fx-fit-to-height: true;" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wireshark.FXMLDocumentController">
     <cursor>
@@ -62,39 +62,39 @@
                             <content>
                                 <TableView fx:id="table" onMouseClicked="#handleTableMouseClick" prefHeight="200.0" prefWidth="915.0">
                                     <columns>                             
-                                        <TableColumn prefWidth="75.0" text="No." >
+                                        <TableColumn prefWidth="75.0" text="No.">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="no"/>
+                                                <PropertyValueFactory property="no" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="91.0" text="Time" >
+                                        <TableColumn prefWidth="91.0" text="Time">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="time"/>
+                                                <PropertyValueFactory property="time" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="170.0" text="Source" >
+                                        <TableColumn prefWidth="170.0" text="Source">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="source"/>
+                                                <PropertyValueFactory property="source" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="75.0" text="Destination" >
+                                        <TableColumn prefWidth="75.0" text="Destination">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="destination"/>
+                                                <PropertyValueFactory property="destination" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="75.0" text="Protocol" >
+                                        <TableColumn prefWidth="75.0" text="Protocol">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="protocol"/>
+                                                <PropertyValueFactory property="protocol" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="78.0" text="Length" >
+                                        <TableColumn prefWidth="78.0" text="Length">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="length"/>
+                                                <PropertyValueFactory property="length" />
                                             </cellValueFactory>
                                         </TableColumn>
-                                        <TableColumn prefWidth="146.0" text="Info" >
+                                        <TableColumn prefWidth="146.0" text="Info">
                                             <cellValueFactory>
-                                                <PropertyValueFactory property="info"/>
+                                                <PropertyValueFactory property="info" />
                                             </cellValueFactory>
                                         </TableColumn> 
                                     </columns>
@@ -108,17 +108,17 @@
                             <content>
                                 <Accordion fx:id="accordion" prefHeight="305.0" prefWidth="789.0">
                                     <panes>
-                                        <TitledPane fx:id="framePane" animated="false" prefHeight="205.0" prefWidth="847.0">
+                                        <TitledPane fx:id="framePane" prefHeight="205.0" prefWidth="847.0">
                                             <content>
                                                 <TextArea prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
-                                        <TitledPane fx:id="ethernetPane" animated="false">
+                                        <TitledPane fx:id="ethernetPane">
                                             <content>
                                                 <TextArea prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
-                                        <TitledPane fx:id="ipPane" animated="false">
+                                        <TitledPane fx:id="ipPane">
                                             <content>
                                                 <TextArea prefHeight="200.0" prefWidth="200.0" />
                                             </content>
@@ -133,7 +133,7 @@
                                                 <TextArea prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
-                                        <TitledPane animated="false">
+                                        <TitledPane>
                                             <content>
                                                 <TextArea prefHeight="200.0" prefWidth="200.0" />
                                             </content>

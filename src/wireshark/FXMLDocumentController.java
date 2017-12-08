@@ -65,8 +65,8 @@ public class FXMLDocumentController implements Initializable {
             anchorPane.setPrefSize(vbox2.getPrefWidth(), vbox2.getPrefHeight() + MENUHEIGHT); //majornelson <3
             anchorPane.getScene().getWindow().sizeToScene();
             anchorPane.getScene().getWindow().centerOnScreen();
-            addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
-            addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
+            addToTable(Arrays.asList(new String[]{"1", "1", "2", "2", "3", "3", "4"}));
+            addToTable(Arrays.asList(new String[]{"1", "1", "2", "2", "3", "3", "4"}));
         }
     }
 
@@ -84,15 +84,15 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //function that returns a list of devices
-        list.setItems(FXCollections.observableArrayList("Single", "Double", "Suite", "Family App"));
+        //function that returns a list of devices        
         vbox2.setVisible(false);
         anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
+        list.setItems(FXCollections.observableArrayList("Single", "Double", "Suite", "Family App"));
     }
 
-    private void addToTable(String[] row) {
+    protected void addToTable(List<String> row) {
         tableData.add(new TableItem(row));
 
     }
@@ -121,14 +121,14 @@ public class FXMLDocumentController implements Initializable {
         private final SimpleStringProperty length;
         private final SimpleStringProperty info;
 
-        private TableItem(String[] data) {
-            no = new SimpleStringProperty(data[0]);
-            time = new SimpleStringProperty(data[1]);
-            source = new SimpleStringProperty(data[2]);
-            destination = new SimpleStringProperty(data[3]);
-            protocol = new SimpleStringProperty(data[4]);
-            length = new SimpleStringProperty(data[5]);
-            info = new SimpleStringProperty(data[6]);
+        private TableItem(List<String> data) {
+            no = new SimpleStringProperty(data.get(0));
+            time = new SimpleStringProperty(data.get(1));
+            source = new SimpleStringProperty(data.get(2));
+            destination = new SimpleStringProperty(data.get(3));
+            protocol = new SimpleStringProperty(data.get(4));
+            length = new SimpleStringProperty(data.get(5));
+            info = new SimpleStringProperty(data.get(6));
         }
 
         public String getNo() {
