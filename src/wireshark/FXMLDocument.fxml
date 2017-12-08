@@ -77,13 +77,28 @@
                   </ScrollPane>
                   <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="307.0" prefWidth="917.0">
                      <content>
-                        <Accordion prefHeight="305.0" prefWidth="789.0">
+                        <Accordion fx:id="accordion" prefHeight="305.0" prefWidth="789.0">
                           <panes>
-                            <TitledPane animated="false" prefHeight="205.0" prefWidth="847.0" text="untitled 1" />
-                            <TitledPane animated="false" text="untitled 2" />
-                              <TitledPane animated="false" text="untitled" />
-                              <TitledPane prefHeight="200.0" prefWidth="200.0" />
-                              <TitledPane prefHeight="200.0" prefWidth="200.0" />
+                            <TitledPane fx:id="framePane" animated="false" prefHeight="205.0" prefWidth="847.0">
+                                 <content>
+                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                 </content></TitledPane>
+                            <TitledPane fx:id="ethernetPane" animated="false" text="untitled 2">
+                                 <content>
+                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                 </content></TitledPane>
+                              <TitledPane fx:id="ipPane" animated="false" text="untitled">
+                                 <content>
+                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                 </content></TitledPane>
+                              <TitledPane fx:id="transportPane" prefHeight="200.0" prefWidth="200.0">
+                                 <content>
+                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                 </content></TitledPane>
+                              <TitledPane fx:id="othersPane" prefHeight="200.0" prefWidth="200.0">
+                                 <content>
+                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                 </content></TitledPane>
                           </panes>
                         </Accordion>
                      </content>

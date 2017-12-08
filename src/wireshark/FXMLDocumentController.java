@@ -7,6 +7,7 @@ package wireshark;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -14,12 +15,16 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.TitledPane;
 
 /**
  *
@@ -40,9 +45,12 @@ public class FXMLDocumentController implements Initializable {
     private AnchorPane anchorPane;
     @FXML
     private TableView table;
-    
+
     private static int MENUHEIGHT = 25;
-    private ObservableList<String []> tableData;
+
+    private ObservableList<String[]> tableData;
+    @FXML
+    private Accordion accordion;
 
     @FXML
     private void handleMouseClicked(MouseEvent click) {
@@ -54,6 +62,8 @@ public class FXMLDocumentController implements Initializable {
             anchorPane.setPrefSize(vbox2.getPrefWidth(), vbox2.getPrefHeight() + MENUHEIGHT); //majornelson <3
             anchorPane.getScene().getWindow().sizeToScene();
             anchorPane.getScene().getWindow().centerOnScreen();
+            addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
+            setAccordion();
         }
     }
 
@@ -65,13 +75,20 @@ public class FXMLDocumentController implements Initializable {
         anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.observableList(new ArrayList<String[]>());
         table.setItems(tableData);
-        addToTable(new String[]{"1","1","2","2","3","3","4"});
+
     }
-    private void addToTable(String [] row)
-    {
-        //dataList.add(row);
+
+    private void addToTable(String[] row) {
         tableData.add(row);
-        
+    }
+
+    private void setAccordion() {
+        for (TitledPane titledPane : accordion.getPanes()) {
+            titledPane.setText("Title");
+            TextArea textArea = new TextArea();
+            titledPane.setContent(textArea);
+            textArea.setText("Text");
+        }
     }
 
 }
