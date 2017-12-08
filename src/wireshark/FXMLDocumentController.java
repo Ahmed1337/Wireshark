@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -48,7 +49,7 @@ public class FXMLDocumentController implements Initializable {
 
     private static int MENUHEIGHT = 25;
 
-    private ObservableList<String[]> tableData;
+    private ObservableList<TableItem> tableData;
     @FXML
     private Accordion accordion;
     @FXML
@@ -74,13 +75,14 @@ public class FXMLDocumentController implements Initializable {
         list.setItems(FXCollections.observableArrayList("Single", "Double", "Suite", "Family App"));
         vbox2.setVisible(false);
         anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
-        tableData = FXCollections.observableList(new ArrayList<String[]>());
+        tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
 
     }
 
     private void addToTable(String[] row) {
-        tableData.add(row);
+        tableData.add(new TableItem(row));
+
     }
 
     private void setAccordion(String[][] detailedData) {
@@ -95,6 +97,56 @@ public class FXMLDocumentController implements Initializable {
             }
             i++;
         }
+    }
+
+    public static class TableItem {
+
+        private final SimpleStringProperty no;
+        private final SimpleStringProperty time;
+        private final SimpleStringProperty source;
+        private final SimpleStringProperty destination;
+        private final SimpleStringProperty protocol;
+        private final SimpleStringProperty length;
+        private final SimpleStringProperty info;
+
+        private TableItem(String[] data) {
+            no = new SimpleStringProperty(data[0]);
+            time = new SimpleStringProperty(data[1]);
+            source = new SimpleStringProperty(data[2]);
+            destination = new SimpleStringProperty(data[3]);
+            protocol = new SimpleStringProperty(data[4]);
+            length = new SimpleStringProperty(data[5]);
+            info = new SimpleStringProperty(data[6]);
+        }
+
+        public String getNo() {
+            return no.get();
+        }
+
+        public String getTime() {
+            return time.get();
+        }
+
+        public String getSource() {
+            return source.get();
+        }
+
+        public String getDestination() {
+            return destination.get();
+        }
+
+        public String getProtocol() {
+            return protocol.get();
+        }
+
+        public String getLength() {
+            return length.get();
+        }
+
+        public String getInfo() {
+            return info.get();
+        }
+
     }
 
 }
