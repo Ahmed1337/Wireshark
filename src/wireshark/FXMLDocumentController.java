@@ -29,7 +29,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.InputEvent;
 import javafx.stage.WindowEvent;
 
 /**

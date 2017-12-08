@@ -75,7 +75,7 @@ public class Capturer {
     }
 
     protected void startCapturing(int deviceNum) {
-        
+
         PcapIf device = alldevs.get(deviceNum);
         int snaplen = 64 * 1024;           // Capture all packets, no trucation  
         int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
