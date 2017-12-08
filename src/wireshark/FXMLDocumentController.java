@@ -51,6 +51,8 @@ public class FXMLDocumentController implements Initializable {
     private ObservableList<String[]> tableData;
     @FXML
     private Accordion accordion;
+    @FXML
+    private TextArea hexView;
 
     @FXML
     private void handleMouseClicked(MouseEvent click) {
@@ -63,7 +65,6 @@ public class FXMLDocumentController implements Initializable {
             anchorPane.getScene().getWindow().sizeToScene();
             anchorPane.getScene().getWindow().centerOnScreen();
             addToTable(new String[]{"1", "1", "2", "2", "3", "3", "4"});
-            setAccordion();
         }
     }
 
@@ -82,12 +83,17 @@ public class FXMLDocumentController implements Initializable {
         tableData.add(row);
     }
 
-    private void setAccordion() {
+    private void setAccordion(String[][] detailedData) {
+        int i = 0;
         for (TitledPane titledPane : accordion.getPanes()) {
-            titledPane.setText("Title");
-            TextArea textArea = new TextArea();
-            titledPane.setContent(textArea);
-            textArea.setText("Text");
+            if (i < detailedData.length) {
+                titledPane.setText(detailedData[i][0]);
+                ((TextArea) titledPane.getContent()).setText(detailedData[i][1]);
+                titledPane.setVisible(true);
+            } else {
+                titledPane.setVisible(false);
+            }
+            i++;
         }
     }
 
