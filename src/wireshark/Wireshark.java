@@ -5,6 +5,7 @@
  */
 package wireshark;
 
+import org.jnetpcap.packet.format.FormatUtils;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,14 +24,37 @@ import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
 import org.jnetpcap.protocol.tcpip.Http;
-import org.jnetpcap.protocol.tcpip.Http.Request;
 import org.jnetpcap.protocol.tcpip.Tcp;
+import org.jnetpcap.protocol.network.Ip4;
+import org.jnetpcap.protocol.tcpip.Udp;
+import java.util.HashMap;
+import java.util.ArrayList;
+import org.jnetpcap.protocol.lan.Ethernet;
+import org.jnetpcap.protocol.network.Arp;
 
 /**
  *
  * @author Ahmed
  */
 public class Wireshark extends Application {
+
+    public static final String Number = "Number";
+    public static final String Time = "Time";
+    public static final String Source = "Source";
+    public static final String Destination = "Destination";
+    public static final String Protocol = "Protocol";
+    public static final String totalSize = "totalSize";
+
+    public static ArrayList<HashMap<String, String>> rows = new ArrayList<>();
+    public static ArrayList<String> detailedView = new ArrayList<>();
+    public static ArrayList<String> hexaView = new ArrayList<>();
+    public static int number = 0;
+    public static final double startTimeInSeconds = getCurrentTime();
+    public static boolean captureStart = false;
+
+    public static double getCurrentTime() {
+        return System.currentTimeMillis() / 1000.0;
+    }
 
     public void testCap() {
         List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs  
@@ -54,7 +78,7 @@ public class Wireshark extends Application {
 
         System.out.println("Enter Device number");
         Scanner sc = new Scanner(System.in);
-        PcapIf device = alldevs.get(sc.nextInt()); // We know we have atleast 1 device  
+        PcapIf device = alldevs.get(2); // We know we have atleast 1 device  
         System.out.printf("Choosing '%s':\n",
                 (device.getDescription() != null) ? device.getDescription()
                 : device.getName());
@@ -73,26 +97,56 @@ public class Wireshark extends Application {
 
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
-            Http http = new Http();
-
             @Override
             public void nextPacket(PcapPacket packet, String user) {
                 //http example  
 
-                if (packet.hasHeader(http)) {
-                    System.out.println(http.toString());
+                Ethernet eth = new Ethernet();
+                Http http = new Http();
+                Tcp tcp = new Tcp();
+                Ip4 ip = new Ip4();
+                Arp arp = new Arp();
+                Udp udp = new Udp();
+                HashMap<String, String> row = new HashMap<>();
+                if ((packet.hasHeader(arp) && packet.hasHeader(eth)) || (packet.hasHeader(ip) && (packet.hasHeader(tcp) || packet.hasHeader(udp)))) {
+                    Wireshark.detailedView.add(packet.toString());
+                    Wireshark.hexaView.add(packet.toHexdump());
+                    Wireshark.rows.add(row);
+                    row.put(Wireshark.Number, Wireshark.number + "");
+                    row.put(Wireshark.Time, (Wireshark.getCurrentTime() - Wireshark.startTimeInSeconds) + "");
+                    row.put(Wireshark.totalSize, packet.getTotalSize() + "");
+                }
+                if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
+                    row.put(Wireshark.Source, FormatUtils.mac(eth.source()));
+                    row.put(Wireshark.Destination, FormatUtils.mac(eth.destination()));
+                    row.put(Wireshark.Protocol, "ARP");
+                } else if (packet.hasHeader(ip)) {
+                    row.put(Wireshark.Source, FormatUtils.ip(ip.source()));
+                    row.put(Wireshark.Destination, FormatUtils.ip(ip.destination()));
+                    if (packet.hasHeader(udp)) {
+                        row.put(Wireshark.Protocol, "UDP");
+                    } else if (packet.hasHeader(tcp)) {
+                        row.put(Wireshark.Protocol, "TCP");
+                        if (packet.hasHeader(http) && !http.isResponse()) {
+                            row.put(Wireshark.Protocol, "HTTP");
+                        }
+                    }
                 }
 
-//                System.out.printf("Received packet at %s caplen=%-4d len=%-4d %s\n",
-//                        new Date(packet.getCaptureHeader().timestampInMillis()),
-//                        packet.getCaptureHeader().caplen(), // Length actually captured  
-//                        packet.getCaptureHeader().wirelen(), // Original length   
-//                        user // User supplied object  
-//                );
+                number++;
             }
         };
 
-        pcap.loop(10000, jpacketHandler, "hi");
+        pcap.loop(10, jpacketHandler, "hi");
+        int ll = 0;
+        for (HashMap<String, String> row : rows) {
+            System.out.println(detailedView.get(ll));;
+            for(String value : row.values()) {
+                System.out.println(value);
+            }
+            ll++;
+            System.out.println("\n\n\n");
+        }
     }
 
     @Override
