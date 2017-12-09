@@ -6,11 +6,13 @@
 package wireshark;
 
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,13 +38,13 @@ import javafx.stage.WindowEvent;
 public class FXMLDocumentController implements Initializable {
 
     @FXML
-    private ListView list;
+    private ListView devicesList;
+    @FXML
+    private VBox devicesVBox;
     @FXML
     private VBox captureVBox;
     @FXML
-    private VBox vbox2;
-    @FXML
-    private AnchorPane anchorPane;
+    private AnchorPane container;
     @FXML
     private TableView table;
 
@@ -97,17 +99,17 @@ public class FXMLDocumentController implements Initializable {
     private void handleMouseClicked(MouseEvent click) {
         if (click.getClickCount() == 2) {
             //choose device by index
-            deviceNumber = list.getSelectionModel().getSelectedIndex();
+            deviceNumber = devicesList.getSelectionModel().getSelectedIndex();
             if (deviceNumber == -1) {
                 return;
             }
             startCapturing();
-            captureVBox.setVisible(false);
-            vbox2.setVisible(true);
-            anchorPane.setPrefSize(vbox2.getPrefWidth(), vbox2.getPrefHeight() + MENUHEIGHT); //majornelson <3
-            anchorPane.getScene().getWindow().sizeToScene();
-            anchorPane.getScene().getWindow().centerOnScreen();
-            anchorPane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
+            devicesVBox.setVisible(false);
+            captureVBox.setVisible(true);
+            container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
+            container.getScene().getWindow().sizeToScene();
+            container.getScene().getWindow().centerOnScreen();
+            container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
                     capturer.stopCapturing();
@@ -133,26 +135,26 @@ public class FXMLDocumentController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //function that returns a list of devices        
-        vbox2.setVisible(false);
-        anchorPane.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT);
+        captureVBox.setVisible(false);
+        container.setPrefSize(devicesVBox.getPrefWidth(), devicesVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
         capturer = new Capturer(this);
-        list.setItems(FXCollections.observableList(capturer.getDevices()));
+        devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
     }
 
     private void startCapturing() {
-        Thread t = new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 capturer.startCapturing(deviceNumber);
             }
 
         });
-        t.start();
+        thread.start();
     }
 
-    protected void addToTable(List<String> row) {
+    protected void addToTable(List row) {
         if (row.size() == 7) {
             tableData.add(new TableItem(row));
         } else {
@@ -186,14 +188,14 @@ public class FXMLDocumentController implements Initializable {
         private final SimpleIntegerProperty length;
         private final SimpleStringProperty info;
 
-        private TableItem(List<String> data) {
-            no = new SimpleIntegerProperty(Integer.parseInt(data.get(0)));
-            time = new SimpleDoubleProperty(Double.parseDouble(data.get(1).substring(0, data.get(1).indexOf(".") + 6)));
-            source = new SimpleStringProperty(data.get(2));
-            destination = new SimpleStringProperty(data.get(3));
-            protocol = new SimpleStringProperty(data.get(4));
-            length = new SimpleIntegerProperty(Integer.parseInt(data.get(5)));
-            info = new SimpleStringProperty(data.get(6));
+        private TableItem(List data) {
+            no = new SimpleIntegerProperty((int) data.get(0));
+            time = new SimpleDoubleProperty((double) data.get(1));
+            source = new SimpleStringProperty((String) data.get(2));
+            destination = new SimpleStringProperty((String) data.get(3));
+            protocol = new SimpleStringProperty((String) data.get(4));
+            length = new SimpleIntegerProperty((int) data.get(5));
+            info = new SimpleStringProperty((String) data.get(6));
         }
 
         public Integer getNo() {

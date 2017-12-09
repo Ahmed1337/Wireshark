@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane fx:id="anchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="648.0" prefWidth="873.0" style="-fx-fit-to-height: true;" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wireshark.FXMLDocumentController">
+<AnchorPane fx:id="container" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="648.0" prefWidth="873.0" style="-fx-fit-to-height: true;" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wireshark.FXMLDocumentController">
     <cursor>
         <Cursor fx:constant="DEFAULT" />
     </cursor>
@@ -44,7 +44,7 @@
                 </Menu>
             </menus>
         </MenuBar>
-        <VBox fx:id="vbox2" alignment="CENTER" layoutY="23.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="797.0" prefWidth="873.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
+        <VBox fx:id="captureVBox" alignment="CENTER" layoutY="23.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="797.0" prefWidth="873.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
             <children>
             <HBox prefHeight="65.0" prefWidth="873.0" spacing="20.0">
                <children>
@@ -151,12 +151,12 @@
                 </VBox>
             </children>
         </VBox>
-        <VBox fx:id="captureVBox" alignment="CENTER" layoutX="217.0" layoutY="51.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="438.0" prefWidth="873.0" spacing="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+        <VBox fx:id="devicesVBox" alignment="CENTER" layoutX="217.0" layoutY="51.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="438.0" prefWidth="873.0" spacing="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
             <children>
                 <Label fx:id="label" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="17.0" prefWidth="92.0" text="Capture From" />
             <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="230.0">
                <content>
-                      <ListView fx:id="list" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#handleMouseClicked" prefHeight="198.0" prefWidth="228.0" />
+                      <ListView fx:id="devicesList" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#handleMouseClicked" prefHeight="198.0" prefWidth="228.0" />
                </content>
             </ScrollPane>
             </children>

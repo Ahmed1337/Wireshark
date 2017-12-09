@@ -29,18 +29,18 @@ public class Capturer {
     private List<PcapIf> alldevs;
     private StringBuilder errbuf;
     private Pcap pcap;
-    private ArrayList<ArrayList<String>> rows;
-    private ArrayList<String> detailedView;
-    private ArrayList<String> hexaView;
+    private List rows;
+    private List detailedView;
+    private List hexaView;
     private int number = 0;
     private double startTimeInSeconds;
     private boolean captureStart = false;
 
     protected Capturer(FXMLDocumentController controller) {
         this.controller = controller;
-        rows = new ArrayList<>();
-        detailedView = new ArrayList<>();
-        hexaView = new ArrayList<>();
+        rows = new ArrayList();
+        detailedView = new ArrayList();
+        hexaView = new ArrayList();
     }
 
     private double getCurrentTime() {
@@ -49,8 +49,8 @@ public class Capturer {
 
     protected List getDevices() {
 
-        List<String> devices = new ArrayList<String>();
-        alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs  
+        List devices = new ArrayList();
+        alldevs = new ArrayList(); // Will be filled with NICs  
         errbuf = new StringBuilder(); // For any error msgs  
         int r = Pcap.findAllDevs(alldevs, errbuf);
         if (r == Pcap.ERROR || alldevs.isEmpty()) {
@@ -71,7 +71,7 @@ public class Capturer {
     }
 
     protected String getHex(int packetNum) {
-        return hexaView.get(packetNum);
+        return (String) hexaView.get(packetNum);
     }
 
     protected void startCapturing(int deviceNum) {
@@ -102,13 +102,13 @@ public class Capturer {
                 try {
                     String protocol = null;
                     //http example  
-                    ArrayList<String> row = new ArrayList<>();
+                    List row = new ArrayList();
                     rows.add(row);
                     if ((packet.hasHeader(arp) && packet.hasHeader(eth)) || (packet.hasHeader(ip) && (packet.hasHeader(tcp) || packet.hasHeader(udp)))) {
                         detailedView.add(packet.toString());
                         hexaView.add(packet.toHexdump());
-                        row.add(number + "");
-                        row.add((getCurrentTime() - startTimeInSeconds) + "");
+                        row.add(number);
+                        row.add((getCurrentTime() - startTimeInSeconds));
                     }
                     if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
                         row.add(FormatUtils.mac(eth.source()));
@@ -141,17 +141,18 @@ public class Capturer {
                     }
 
                     row.add(protocol);
-                    row.add(packet.getTotalSize() + "");
+                    row.add(packet.getTotalSize());
                     row.add("");
                     controller.addToTable(row);
                     number++;
                 } catch (Exception e) {
+                    System.out.println("Error");
                 }
             }
         };
 
         startTimeInSeconds = getCurrentTime();
-        pcap.loop(1000000, jpacketHandler, "");
+        pcap.loop(Pcap.LOOP_INFINITE, jpacketHandler, "");
 
     }
 
