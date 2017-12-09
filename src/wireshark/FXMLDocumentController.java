@@ -6,22 +6,20 @@
 package wireshark;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -37,9 +35,6 @@ import javafx.stage.WindowEvent;
  */
 public class FXMLDocumentController implements Initializable {
 
-    @FXML
-
-    private Label label;
     @FXML
     private ListView list;
     @FXML
@@ -65,6 +60,7 @@ public class FXMLDocumentController implements Initializable {
     private Button stopButton;
     @FXML
     private Button restartButton;
+
     private Capturer capturer;
 
     private int deviceNumber;
@@ -126,7 +122,7 @@ public class FXMLDocumentController implements Initializable {
     private void handleTableMouseClick(Event Click) {
 
         try {
-            int packetNumber = Integer.parseInt(tableData.get(table.getSelectionModel().getSelectedIndex()).getNo());
+            int packetNumber = tableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
             //String [][] detailedData = getDetailedData(packetNumber);
             //setAccordion(delatiledData);
             hexView.setText(capturer.getHex(packetNumber));
@@ -182,29 +178,29 @@ public class FXMLDocumentController implements Initializable {
 
     public static class TableItem {
 
-        private final SimpleStringProperty no;
-        private final SimpleStringProperty time;
+        private final SimpleIntegerProperty no;
+        private final SimpleDoubleProperty time;
         private final SimpleStringProperty source;
         private final SimpleStringProperty destination;
         private final SimpleStringProperty protocol;
-        private final SimpleStringProperty length;
+        private final SimpleIntegerProperty length;
         private final SimpleStringProperty info;
 
         private TableItem(List<String> data) {
-            no = new SimpleStringProperty(data.get(0));
-            time = new SimpleStringProperty(data.get(1).substring(0, data.get(1).indexOf(".") + 6));
+            no = new SimpleIntegerProperty(Integer.parseInt(data.get(0)));
+            time = new SimpleDoubleProperty(Double.parseDouble(data.get(1).substring(0, data.get(1).indexOf(".") + 6)));
             source = new SimpleStringProperty(data.get(2));
             destination = new SimpleStringProperty(data.get(3));
             protocol = new SimpleStringProperty(data.get(4));
-            length = new SimpleStringProperty(data.get(5));
+            length = new SimpleIntegerProperty(Integer.parseInt(data.get(5)));
             info = new SimpleStringProperty(data.get(6));
         }
 
-        public String getNo() {
+        public Integer getNo() {
             return no.get();
         }
 
-        public String getTime() {
+        public Double getTime() {
             return time.get();
         }
 
@@ -220,7 +216,7 @@ public class FXMLDocumentController implements Initializable {
             return protocol.get();
         }
 
-        public String getLength() {
+        public Integer getLength() {
             return length.get();
         }
 
