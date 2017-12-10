@@ -74,6 +74,10 @@ public class Capturer {
         return (String) hexaView.get(packetNum);
     }
 
+    protected String getDetailedData(int packetNum){
+        return (String) detailedView.get(packetNum);
+    }
+
     protected void startCapturing(int deviceNum) {
 
         PcapIf device = alldevs.get(deviceNum);
@@ -106,11 +110,13 @@ public class Capturer {
                         packetCaptured = true;
                     }
                     String protocol = null;
+                    String detailedData = "";
                     //http example  
                     List row = new ArrayList();
                     rows.add(row);
                     if ((packet.hasHeader(arp) && packet.hasHeader(eth)) || (packet.hasHeader(ip) && (packet.hasHeader(tcp) || packet.hasHeader(udp)))) {
-                        detailedView.add(packet.toString());
+                        //detailedView.add(packet.toString());
+                        detailedData += packet.toString();
                         hexaView.add(packet.toHexdump());
                         row.add(number);
                         row.add((getCurrentTime() - startTimeInSeconds));
@@ -129,18 +135,23 @@ public class Capturer {
                             if (packet.hasHeader(http)) {
                                 if (!http.isResponse()) {
                                     protocol = "HTTP";
+                                    //detailedData += http.toString();
                                 } else {
                                     int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
                                     if (http.getPayload().length < contentLength) {
                                         HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
                                     } else {
                                         protocol = "HTTP";
+                                        // detailedData += http.toString() + new String(http.getPayload());
+
                                     }
                                 }
                             }
                             String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
                             if (str != null) {
                                 protocol = "HTTP";
+                                detailedData += "HTTP-reassembly" + str;
+                                //System.out.println(str);
                             }
                         }
                     }
@@ -148,8 +159,11 @@ public class Capturer {
                     row.add(protocol);
                     row.add(packet.getTotalSize());
                     row.add("");
+                    detailedView.add(detailedData);
                     controller.addToTable(row);
                     number++;
+                    // JFormatterTextFormatter;
+                    //System.out.println(detailedData);
                 } catch (Exception e) {
                     System.out.println("Error");
                 }
