@@ -168,10 +168,10 @@ public class FXMLDocumentController implements Initializable {
 
         try {
             int packetNumber = tableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
-            //String [][] detailedData = getDetailedData(packetNumber);
-            //setAccordion(delatiledData);
+            setAccordion(getDetailedData(packetNumber));
             hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -258,13 +258,71 @@ public class FXMLDocumentController implements Initializable {
             System.out.println(Arrays.toString(row.toArray()));
         }
     }
-
-    private void setAccordion(String[][] detailedData) {
+    
+    protected ArrayList<String[]> getDetailedData(int packetNum) {
+        String data = capturer.getDetailedData(packetNum).trim(), header = null, text = null;
+        int index = 0;
+        ArrayList<String[]> ret = new ArrayList();
+        while (index < data.length() - 1) {
+            String[] accordion = new String[2];
+            System.out.println(data.charAt(index));
+            header = data.substring(index, index = data.indexOf(":", index));
+            boolean isFrame = false;
+            String temp = "";
+            if (data.charAt(index + 1) == '\n') {
+                isFrame = true;
+                index++;
+            } else {
+                temp += data.substring(index, index = data.indexOf(header + ":", index + 1));
+                temp = temp.substring(0, temp.indexOf("*")) + temp.substring(temp.lastIndexOf("*") + 1, temp.length());
+                index += header.length() + 8;
+            }
+            int finalIndex = 0;
+            if (header.equals("Data")) {
+                break;
+            } else if (header.equals("Html")) {
+                finalIndex = data.length();
+            } else if (header.equals("Rtp")) {
+                finalIndex = data.lastIndexOf(header);
+            } else {
+                finalIndex = data.lastIndexOf(header + ":");
+            }
+            text = data.substring(index, index = finalIndex);
+            text = text.replaceAll(header + ":", "");
+            index += header.length() + ((isFrame) ? 2 : 3);
+            if (header.equals("Rtp")) {
+                index -= 2;
+            }
+            if (isFrame) {
+                header += (" " + packetNum);
+            } else {
+                header += temp;
+            }
+            accordion[0] = header;
+            accordion[1] = text;
+            ret.add(accordion);
+            //System.out.println(data.substring(index));
+            //System.out.println("hi\n"+data.substring(index));
+        }
+        if ((index = data.indexOf("HTTP-reassembly")) > -1) {
+            String[] accordion = new String[2];
+            accordion[0] = "Html";
+            accordion[1] = data.substring(index + "HTTP-reassembly".length(), index = data.indexOf("\n\nHttp packet is assembled from the following tcp packets\n\n"));
+            ret.add(accordion);
+            accordion = new String[2];
+            accordion[0] = "Reassembled TCP segments";
+            accordion[1] = data.substring(index + "\n\nHttp packet is assembled from the following tcp packets\n\n".length(), data.length() - 1);
+            ret.add(accordion);
+        }
+        return ret;
+    }
+    
+    private void setAccordion(ArrayList<String[]> detailedData) {
         int i = 0;
         for (TitledPane titledPane : accordion.getPanes()) {
-            if (i < detailedData.length) {
-                titledPane.setText(detailedData[i][0]);
-                ((TextArea) titledPane.getContent()).setText(detailedData[i][1]);
+            if (i < detailedData.size()) {
+                titledPane.setText(detailedData.get(i)[0]);
+                ((TextArea) titledPane.getContent()).setText(detailedData.get(i)[1]);
                 titledPane.setVisible(true);
             } else {
                 titledPane.setVisible(false);
