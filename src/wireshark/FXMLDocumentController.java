@@ -34,6 +34,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
@@ -70,11 +72,10 @@ public class FXMLDocumentController implements Initializable {
     private Button restartButton;
 
     @FXML
-    private Button filterButton;
-    @FXML
     private TextField filterTextField;
     @FXML
     private Label errorLabel;
+
     private Capturer capturer;
 
     private int deviceNumber;
@@ -92,22 +93,27 @@ public class FXMLDocumentController implements Initializable {
     }
 
     @FXML
-    private void handleFilterButton(Event event) {
-        String[] filters = filterTextField.getText().split(";");
-        allowedProtocols.clear();
-        allowedIPs.clear();
-        for (String filter : filters) {
-            if (isProtocol(filter)) {
-                allowedProtocols.add(filter);
+    private void handleFilterTextField(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            String[] filters = filterTextField.getText().split(";");
+            allowedProtocols.clear();
+            allowedIPs.clear();
+            if (filters.length == 1 && filters[0].isEmpty()) {
                 errorLabel.setText("");
-            } else if (isIP(filter)) {
-                allowedIPs.add(filter);
-                errorLabel.setText("");
-            } else {
-                errorLabel.setText("Invalid Syntax/Error");
+                return;
+            }
+            for (String filter : filters) {
+                if (isProtocol(filter)) {
+                    allowedProtocols.add(filter);
+                    errorLabel.setText("");
+                } else if (isIP(filter)) {
+                    allowedIPs.add(filter);
+                    errorLabel.setText("");
+                } else {
+                    errorLabel.setText("Invalid Syntax/Error");
+                }
             }
         }
-
     }
 
     @FXML
@@ -188,10 +194,10 @@ public class FXMLDocumentController implements Initializable {
                     protected void updateItem(TableItem item, boolean empty) {
                         super.updateItem(item, empty);
                         if (item != null && !empty) {
-                            if (!(isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource())))) {
-                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma;");
-                            } else {
+                            if (isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource()))) {
                                 this.setStyle(null);
+                            } else {
+                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma; -fx-border-width: 0px;");
                             }
 
                         }
