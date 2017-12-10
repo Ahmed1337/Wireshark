@@ -5,8 +5,10 @@
  */
 package wireshark;
 
+import java.awt.Color;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -22,14 +24,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TitledPane;
 import javafx.stage.WindowEvent;
+import javafx.util.Callback;
 
 /**
  *
@@ -63,14 +69,45 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Button restartButton;
 
+    @FXML
+    private Button filterButton;
+    @FXML
+    private TextField filterTextField;
+    @FXML
+    private Label errorLabel;
     private Capturer capturer;
 
     private int deviceNumber;
+
+    private List<String> allowedProtocols;
+    private List<String> allowedIPs;
+    private static final String[] PROTOCOLS = {"TCP", "UDP", "HTTP", "ARP", "DNS", "ICMP"};
+    private static final String ipv4Pattern = "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
+    //private static final String ipv6Pattern = "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
 
     private void disableButtons(boolean start, boolean stop) {
         startButton.setDisable(start);
         stopButton.setDisable(stop);
         restartButton.setDisable(stop);
+    }
+
+    @FXML
+    private void handleFilterButton(Event event) {
+        String[] filters = filterTextField.getText().split(";");
+        allowedProtocols.clear();
+        allowedIPs.clear();
+        for (String filter : filters) {
+            if (isProtocol(filter)) {
+                allowedProtocols.add(filter);
+                errorLabel.setText("");
+            } else if (isIP(filter)) {
+                allowedIPs.add(filter);
+                errorLabel.setText("");
+            } else {
+                errorLabel.setText("Invalid Syntax/Error");
+            }
+        }
+
     }
 
     @FXML
@@ -141,6 +178,60 @@ public class FXMLDocumentController implements Initializable {
         table.setItems(tableData);
         capturer = new Capturer(this);
         devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
+        allowedProtocols = new ArrayList();
+        allowedIPs = new ArrayList();
+        table.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
+            @Override
+            public TableRow<TableItem> call(TableView<TableItem> param) {
+                return new TableRow<TableItem>() {
+                    @Override
+                    protected void updateItem(TableItem item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item != null && !empty) {
+                            if (!(isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource())))) {
+                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma;");
+                            } else {
+                                this.setStyle(null);
+                            }
+
+                        }
+                    }
+
+                };
+
+            }
+
+        });
+
+    }
+
+    private boolean isIP(String s) {
+        return s.matches(ipv4Pattern);
+    }
+
+    private boolean isProtocol(String s) {
+        for (String protocol : PROTOCOLS) {
+            if (s.equals(protocol)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIPAllowed(String ip) {
+        if (!allowedIPs.isEmpty()) {
+            return allowedIPs.contains(ip);
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isProtocolAllowed(String protocol) {
+        if (!allowedProtocols.isEmpty()) {
+            return allowedProtocols.contains(protocol);
+        } else {
+            return true;
+        }
     }
 
     private void startCapturing() {
@@ -160,7 +251,6 @@ public class FXMLDocumentController implements Initializable {
         } else {
             System.out.println(Arrays.toString(row.toArray()));
         }
-
     }
 
     private void setAccordion(String[][] detailedData) {

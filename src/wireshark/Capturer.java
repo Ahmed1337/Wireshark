@@ -79,7 +79,7 @@ public class Capturer {
         PcapIf device = alldevs.get(deviceNum);
         int snaplen = 64 * 1024;           // Capture all packets, no trucation  
         int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
-        int timeout = 1000 * 1000;           // 1000 seconds in millis  
+        int timeout = 60 * 1000;           // 60 seconds in millis  
         pcap = Pcap.openLive(device.getName(), snaplen, flags, timeout, errbuf);
 
         if (pcap == null) {
@@ -96,10 +96,15 @@ public class Capturer {
             private Ip4 ip = new Ip4();
             private Arp arp = new Arp();
             private Udp udp = new Udp();
+            private boolean packetCaptured = false;
 
             @Override
             public void nextPacket(PcapPacket packet, String user) {
                 try {
+                    if (!packetCaptured) {
+                        pcap.setTimeout(Pcap.DEFAULT_TIMEOUT);
+                        packetCaptured = true;
+                    }
                     String protocol = null;
                     //http example  
                     List row = new ArrayList();
