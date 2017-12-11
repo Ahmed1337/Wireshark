@@ -148,6 +148,9 @@ public class Capturer {
                             protocol = "UDP";
                             if (dns != null) {
                                 protocol = "DNS";
+                                StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                System.out.println(dns.toString());
+                                detailedData.append(dns.toString());
                             }
                         } else if (packet.hasHeader(tcp)) {
                             protocol = "TCP";
@@ -167,7 +170,7 @@ public class Capturer {
                             if (str != null) {
                                 protocol = "HTTP";
                                 StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                detailedData.append("HTTP-reassembly").append(str);
+                                detailedData.append("HTTP-reassembly" + str);
                                 //System.out.println(str);
                             }
                         } else if (packet.hasHeader(icmp)) {
