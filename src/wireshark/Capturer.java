@@ -32,15 +32,15 @@ import org.pcap4j.packet.*;
  */
 public class Capturer {
 
-    private FXMLDocumentController controller;
+    private final FXMLDocumentController controller;
     private List<PcapIf> alldevs;
     private StringBuilder errbuf;
     private Pcap pcap;
-    private List detailedView;
-    private List hexaView;
+    private final List detailedView;
+    private final List hexaView;
     private int number = 0;
     private double startTimeInSeconds;
-    private boolean captureStart = false;
+    private final boolean captureStart = false;
 
     protected Capturer(FXMLDocumentController controller) {
         this.controller = controller;
@@ -57,7 +57,7 @@ public class Capturer {
         if (p.hasHeader(udp)) {
             try {
                 return DnsPacket.newPacket(udp.getPayload(), 0, udp.getPayloadLength());
-            } catch (Exception e) {
+            } catch (IllegalRawDataException e) {
                 return null;
             }
         } else {
@@ -75,12 +75,10 @@ public class Capturer {
             return null;
         }
 
-        for (PcapIf device : alldevs) {
-            String deviceName
-                    = (device.getDescription() != null) ? device.getDescription()
-                    : device.getName();
-            devices.add(deviceName);
-        }
+        alldevs.stream().map((device) -> (device.getDescription() != null) ? device.getDescription()
+                : device.getName()).forEachOrdered((deviceName) -> {
+                    devices.add(deviceName);
+        });
         return devices;
     }
 
@@ -111,15 +109,16 @@ public class Capturer {
         }
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
-            private Ethernet eth = new Ethernet();
-            private Http http = new Http();
-            private Tcp tcp = new Tcp();
-            private Ip4 ip = new Ip4();
-            private Arp arp = new Arp();
-            private Udp udp = new Udp();
-            private Icmp icmp = new Icmp();
+            private final Ethernet eth = new Ethernet();
+            private final Http http = new Http();
+            private final Tcp tcp = new Tcp();
+            private final Ip4 ip = new Ip4();
+            private final Arp arp = new Arp();
+            private final Udp udp = new Udp();
+            private final Icmp icmp = new Icmp();
             private DnsPacket dns;
             private boolean packetCaptured = false;
+
 
             @Override
             public void nextPacket(PcapPacket packet, String user) {
@@ -172,6 +171,7 @@ public class Capturer {
                             }
                         } else if (packet.hasHeader(icmp)) {
                             protocol = "ICMP";
+                            System.out.println(packet.toString());
                         }
                     }
 
@@ -188,7 +188,7 @@ public class Capturer {
 
         startTimeInSeconds = getCurrentTime();
         pcap.loop(Pcap.LOOP_INFINITE, jpacketHandler, "");
-
+        
     }
 
 }
