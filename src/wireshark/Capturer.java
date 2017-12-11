@@ -147,6 +147,9 @@ public class Capturer {
                             protocol = "UDP";
                             if (dns != null) {
                                 protocol = "DNS";
+                                StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                detailedData.append("DNS-information").append(dns.toString());
+                                //System.out.println(detailedData.toString());
                             }
                         } else if (packet.hasHeader(tcp)) {
                             protocol = "TCP";
