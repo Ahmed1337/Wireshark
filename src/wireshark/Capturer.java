@@ -150,7 +150,7 @@ public class Capturer {
                     row.add(protocol);
                     row.add(packet.getTotalSize());
                     row.add("");
-                    controller.addToTable(row);
+                    controller.addtoTable(row);
                     // JFormatterTextFormatter;
                     //System.out.println(detailedData);
                 } catch (Exception e) {

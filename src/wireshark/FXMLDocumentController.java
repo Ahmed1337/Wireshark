@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -59,6 +60,7 @@ public class FXMLDocumentController implements Initializable {
     private static final int MENUHEIGHT = 25;
 
     private ObservableList<TableItem> tableData;
+    private ObservableList<TableItem> filteredTableData;
     @FXML
     private Accordion accordion;
     @FXML
@@ -100,27 +102,26 @@ public class FXMLDocumentController implements Initializable {
             allowedIPs.clear();
             if (filters.length == 1 && filters[0].isEmpty()) {
                 errorLabel.setText("");
-                return;
-            }
-            for (String filter : filters) {
-                if (isProtocol(filter)) {
-                    allowedProtocols.add(filter);
-                    errorLabel.setText("");
-                } else if (isIP(filter)) {
-                    allowedIPs.add(filter);
-                    errorLabel.setText("");
-                } else {
-                    errorLabel.setText("Invalid Syntax/Error");
+            } else {
+                for (String filter : filters) {
+                    if (isProtocol(filter)) {
+                        allowedProtocols.add(filter);
+                        errorLabel.setText("");
+                    } else if (isIP(filter)) {
+                        allowedIPs.add(filter);
+                        errorLabel.setText("");
+                    } else {
+                        errorLabel.setText("Invalid Syntax");
+                    }
                 }
             }
-            table.refresh();
+            this.refreshTable();
         }
     }
 
     @FXML
     private void handleStartButton(Event event) {
-        tableData = FXCollections.observableArrayList();
-        table.setItems(tableData);
+        this.resetTables();
         capturer = new Capturer(this);
         capturer.getDevices();
         this.startCapturing();
@@ -168,11 +169,23 @@ public class FXMLDocumentController implements Initializable {
     private void handleTableMouseClick(Event Click) {
 
         try {
-            int packetNumber = tableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
+            int packetNumber = filteredTableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
             setAccordion(getDetailedData(packetNumber));
             hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    private void resetTables() {
+        tableData.clear();
+        filteredTableData.clear();
+    }
+
+    private void refreshTable() {
+        filteredTableData.clear();
+        for (TableItem item : tableData) {
+            addtoFilteredTable(item);
         }
     }
 
@@ -181,34 +194,13 @@ public class FXMLDocumentController implements Initializable {
         //function that returns a list of devices        
         captureVBox.setVisible(false);
         container.setPrefSize(devicesVBox.getPrefWidth(), devicesVBox.getPrefHeight() + MENUHEIGHT);
-        tableData = FXCollections.observableArrayList();
-        table.setItems(tableData);
+        tableData = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+        filteredTableData = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+        table.setItems(filteredTableData);
         capturer = new Capturer(this);
         devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
         allowedProtocols = new ArrayList();
         allowedIPs = new ArrayList();
-        table.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
-            @Override
-            public TableRow<TableItem> call(TableView<TableItem> param) {
-                return new TableRow<TableItem>() {
-                    @Override
-                    protected void updateItem(TableItem item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item != null && !empty) {
-                            if (isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource()))) {
-                                this.setStyle(null);
-                            } else {
-                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma;"); //hide
-                            }
-
-                        }
-                    }
-
-                };
-
-            }
-
-        });
 
     }
 
@@ -252,9 +244,23 @@ public class FXMLDocumentController implements Initializable {
         thread.start();
     }
 
-    protected void addToTable(List row) {
+    private void addtoFilteredTable(TableItem item) {
+        if (isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource()))) {
+            filteredTableData.add(item);
+        }
+    }
+
+    protected void addtoTable(List row) {
         if (row.size() == 7) {
-            tableData.add(new TableItem(row));
+            TableItem item = new TableItem(row);
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    tableData.add(item);
+                    addtoFilteredTable(item);
+                }
+            });
+
         } else {
             System.out.println(Arrays.toString(row.toArray()));
         }
