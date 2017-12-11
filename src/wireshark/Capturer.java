@@ -1,11 +1,6 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
-
-=======
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package wireshark;
@@ -149,8 +144,7 @@ public class Capturer {
                             if (dns != null) {
                                 protocol = "DNS";
                                 StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                System.out.println(dns.toString());
-                                //detailedData.append(dns.toString());
+                                detailedData.append("DNS-information").append(dns.toString());
                             }
                         } else if (packet.hasHeader(tcp)) {
                             protocol = "TCP";

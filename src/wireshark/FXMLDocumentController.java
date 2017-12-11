@@ -270,17 +270,19 @@ public class FXMLDocumentController implements Initializable {
             });
 
         } else {
-            System.out.println(Arrays.toString(row.toArray()));          
+            System.out.println(Arrays.toString(row.toArray()));
         }
     }
 
     protected ArrayList<String[]> getDetailedData(int packetNum) {
         String data = capturer.getDetailedData(packetNum).trim(), header = null, text = null;
-         int index = 0;
+        int index = 0;
         int isDNS = data.indexOf("DNS-information");
         ArrayList<String[]> ret = new ArrayList();
         while (index < data.length() - 1) {
-            if(index==isDNS+1)break;
+            if (index == isDNS + 1) {
+                break;
+            }
             String[] accordion = new String[2];
             //System.out.println(data.charAt(index));
             header = data.substring(index, index = data.indexOf(":", index));
@@ -330,13 +332,12 @@ public class FXMLDocumentController implements Initializable {
             accordion[0] = "Reassembled TCP segments";
             accordion[1] = data.substring(index + "\n\nHttp packet is assembled from the following tcp packets\n\n".length(), data.length() - 1);
             ret.add(accordion);
-        }
-        else if((index = isDNS )>-1) {
+        } else if ((index = isDNS) > -1) {
             String[] accordion = new String[2];
-            header = data.substring( index + "DNS-information".length()+1,index = data.indexOf("]",index) );
+            header = data.substring(index + "DNS-information".length() + 1, index = data.indexOf("]", index));
             index++;
             accordion[0] = header;
-            accordion[1] = data.substring(index,data.length()-1);
+            accordion[1] = data.substring(index, data.length() - 1);
             ret.add(accordion);
         }
         return ret;
