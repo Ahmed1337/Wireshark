@@ -37,6 +37,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
@@ -128,12 +129,14 @@ public class FXMLDocumentController implements Initializable {
         capturer.getDevices();
         this.startCapturing();
         disableButtons(true, false);
+        ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
     }
 
     @FXML
     private void handleStopButton(Event event) {
         capturer.stopCapturing();
         disableButtons(false, true);
+        ((Stage)container.getScene().getWindow()).setTitle("Stopped capturing");
     }
 
     @FXML
@@ -156,6 +159,7 @@ public class FXMLDocumentController implements Initializable {
             container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
             container.getScene().getWindow().sizeToScene();
             container.getScene().getWindow().centerOnScreen();
+            ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
             container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
@@ -209,7 +213,6 @@ public class FXMLDocumentController implements Initializable {
         devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
         allowedProtocols = new ArrayList();
         allowedIPs = new ArrayList();
-
     }
 
     private boolean isIP(String s) {

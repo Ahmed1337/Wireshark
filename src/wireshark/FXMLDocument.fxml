@@ -15,7 +15,10 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -49,9 +52,39 @@
             <children>
             <HBox prefHeight="54.0" prefWidth="873.0" spacing="20.0">
                <children>
-                  <Button fx:id="startButton" disable="true" mnemonicParsing="false" onAction="#handleStartButton" text="Start" />
-                  <Button fx:id="stopButton" mnemonicParsing="false" onAction="#handleStopButton" text="Stop" />
-                  <Button fx:id="restartButton" mnemonicParsing="false" onAction="#handleRestartButton" text="Restart" />
+                  <Button fx:id="startButton" disable="true" mnemonicParsing="false" onAction="#handleStartButton">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@start.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Start" />
+                     </tooltip></Button>
+                  <Button fx:id="stopButton" mnemonicParsing="false" onAction="#handleStopButton">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@stop.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Stop" />
+                     </tooltip></Button>
+                  <Button fx:id="restartButton" mnemonicParsing="false" onAction="#handleRestartButton">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@restart.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Restart" />
+                     </tooltip></Button>
                </children>
                <padding>
                   <Insets left="10.0" />
