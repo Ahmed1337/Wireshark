@@ -116,12 +116,14 @@ public class FXMLDocumentController implements Initializable {
                 }
             }
             this.refreshTable();
+            this.resetView();
         }
     }
 
     @FXML
     private void handleStartButton(Event event) {
         this.resetTables();
+        this.resetView();
         capturer = new Capturer(this);
         capturer.getDevices();
         this.startCapturing();
@@ -167,7 +169,6 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleTableMouseClick(Event Click) {
-
         try {
             int packetNumber = filteredTableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
             setAccordion(getDetailedData(packetNumber));
@@ -187,6 +188,13 @@ public class FXMLDocumentController implements Initializable {
         for (TableItem item : tableData) {
             addtoFilteredTable(item);
         }
+    }
+
+    private void resetView() {
+        for (TitledPane titledPane : accordion.getPanes()) {
+            titledPane.setVisible(false);
+        }
+        hexView.setText(null);
     }
 
     @Override
