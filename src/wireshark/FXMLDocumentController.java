@@ -280,7 +280,7 @@ public class FXMLDocumentController implements Initializable {
         int isDNS = data.indexOf("DNS-information");
         ArrayList<String[]> ret = new ArrayList();
         while (index < data.length() - 1) {
-            if (index == isDNS + 1) {
+            if (index == isDNS + 1 && index > 0) {
                 break;
             }
             String[] accordion = new String[2];
