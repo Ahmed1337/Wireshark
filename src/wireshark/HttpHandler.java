@@ -12,8 +12,9 @@ package wireshark;
 import java.util.HashMap;
 
 public class HttpHandler {
+
     private static final HashMap<String, HttpHelperData> httpPackets = new HashMap<>();
-    
+
     public static void initiateHttpPacket(int tcpPacketNumber, long seqNumber, int tcpPacketLength, int httpContentLength, byte[] httpPayload) {
         httpPackets.put((seqNumber + tcpPacketLength) + "", new HttpHelperData(httpContentLength, tcpPacketNumber, httpPayload));
         //System.out.println("Expected seq No." + (seqNumber + tcpPacketLength));

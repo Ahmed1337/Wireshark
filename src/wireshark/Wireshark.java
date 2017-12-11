@@ -16,7 +16,7 @@ import javafx.stage.Stage;
  * @author Ahmed
  */
 public class Wireshark extends Application {
-    
+
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
@@ -24,7 +24,7 @@ public class Wireshark extends Application {
         stage.setScene(scene);
         stage.setTitle("WireWhale");
         stage.show();
-        
+
     }
-    
+
 }
