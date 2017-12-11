@@ -30,7 +30,7 @@ public class Capturer {
     private StringBuilder errbuf;
     private Pcap pcap;
     private List detailedView;
-    public List hexaView;
+    private List hexaView;
     private int number = 0;
     private double startTimeInSeconds;
     private boolean captureStart = false;
@@ -128,15 +128,12 @@ public class Capturer {
                             if (packet.hasHeader(http)) {
                                 if (!http.isResponse()) {
                                     protocol = "HTTP";
-                                    //detailedData += http.toString();
                                 } else {
                                     int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
                                     if (http.getPayload().length < contentLength) {
                                         HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
                                     } else {
-                                        protocol = "HTTP";
-                                        // detailedData += http.toString() + new String(http.getPayload());
-
+                                        protocol = "HTTP";                                     
                                     }
                                 }
                             }
@@ -157,7 +154,7 @@ public class Capturer {
                     // JFormatterTextFormatter;
                     //System.out.println(detailedData);
                 } catch (Exception e) {
-                    System.out.println("eshta yasta");
+                    System.out.println(e.getMessage());
                 }
             }
         };

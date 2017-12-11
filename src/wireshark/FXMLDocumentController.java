@@ -172,8 +172,7 @@ public class FXMLDocumentController implements Initializable {
             setAccordion(getDetailedData(packetNumber));
             hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
-            System.out.println(tableData.get(table.getSelectionModel().getSelectedIndex()).getNo());
-            System.out.println(capturer.hexaView.size());
+            System.out.println(e.getMessage());
         }
     }
 
