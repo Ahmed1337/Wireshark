@@ -113,6 +113,7 @@ public class FXMLDocumentController implements Initializable {
                     errorLabel.setText("Invalid Syntax/Error");
                 }
             }
+            table.refresh();
         }
     }
 
@@ -171,7 +172,8 @@ public class FXMLDocumentController implements Initializable {
             setAccordion(getDetailedData(packetNumber));
             hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println(tableData.get(table.getSelectionModel().getSelectedIndex()).getNo());
+            System.out.println(capturer.hexaView.size());
         }
     }
 
@@ -197,7 +199,7 @@ public class FXMLDocumentController implements Initializable {
                             if (isProtocolAllowed(item.getProtocol()) && (isIPAllowed(item.getDestination()) || isIPAllowed(item.getSource()))) {
                                 this.setStyle(null);
                             } else {
-                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma; -fx-border-width: 0px;");
+                                this.setStyle("-fx-cell-size: 0.0000000001; -fx-font: 0px Tahoma;"); //hide
                             }
 
                         }
@@ -258,14 +260,14 @@ public class FXMLDocumentController implements Initializable {
             System.out.println(Arrays.toString(row.toArray()));
         }
     }
-    
+
     protected ArrayList<String[]> getDetailedData(int packetNum) {
         String data = capturer.getDetailedData(packetNum).trim(), header = null, text = null;
         int index = 0;
         ArrayList<String[]> ret = new ArrayList();
         while (index < data.length() - 1) {
             String[] accordion = new String[2];
-            System.out.println(data.charAt(index));
+            //System.out.println(data.charAt(index));
             header = data.substring(index, index = data.indexOf(":", index));
             boolean isFrame = false;
             String temp = "";
@@ -316,7 +318,7 @@ public class FXMLDocumentController implements Initializable {
         }
         return ret;
     }
-    
+
     private void setAccordion(ArrayList<String[]> detailedData) {
         int i = 0;
         for (TitledPane titledPane : accordion.getPanes()) {

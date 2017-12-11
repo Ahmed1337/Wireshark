@@ -29,16 +29,14 @@ public class Capturer {
     private List<PcapIf> alldevs;
     private StringBuilder errbuf;
     private Pcap pcap;
-    private List rows;
     private List detailedView;
-    private List hexaView;
+    public List hexaView;
     private int number = 0;
     private double startTimeInSeconds;
     private boolean captureStart = false;
 
     protected Capturer(FXMLDocumentController controller) {
         this.controller = controller;
-        rows = new ArrayList();
         detailedView = new ArrayList();
         hexaView = new ArrayList();
     }
@@ -74,8 +72,8 @@ public class Capturer {
         return (String) hexaView.get(packetNum);
     }
 
-    protected String getDetailedData(int packetNum){
-        return (String) detailedView.get(packetNum);
+    protected String getDetailedData(int packetNum) {
+        return  ((StringBuilder)detailedView.get(packetNum)).toString();
     }
 
     protected void startCapturing(int deviceNum) {
@@ -91,7 +89,6 @@ public class Capturer {
                     + errbuf.toString());
             return;
         }
-
         PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
 
             private Ethernet eth = new Ethernet();
@@ -110,15 +107,11 @@ public class Capturer {
                         packetCaptured = true;
                     }
                     String protocol = null;
-                    String detailedData = "";
-                    //http example  
                     List row = new ArrayList();
-                    rows.add(row);
                     if ((packet.hasHeader(arp) && packet.hasHeader(eth)) || (packet.hasHeader(ip) && (packet.hasHeader(tcp) || packet.hasHeader(udp)))) {
-                        //detailedView.add(packet.toString());
-                        detailedData += packet.toString();
+                        detailedView.add(new StringBuilder(packet.toString()));
                         hexaView.add(packet.toHexdump());
-                        row.add(number);
+                        row.add(number++);
                         row.add((getCurrentTime() - startTimeInSeconds));
                     }
                     if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
@@ -150,7 +143,8 @@ public class Capturer {
                             String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
                             if (str != null) {
                                 protocol = "HTTP";
-                                detailedData += "HTTP-reassembly" + str;
+                                StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                detailedData.append("HTTP-reassembly" + str);
                                 //System.out.println(str);
                             }
                         }
@@ -159,13 +153,11 @@ public class Capturer {
                     row.add(protocol);
                     row.add(packet.getTotalSize());
                     row.add("");
-                    detailedView.add(detailedData);
                     controller.addToTable(row);
-                    number++;
                     // JFormatterTextFormatter;
                     //System.out.println(detailedData);
                 } catch (Exception e) {
-                    System.out.println("Error");
+                    System.out.println("eshta yasta");
                 }
             }
         };
