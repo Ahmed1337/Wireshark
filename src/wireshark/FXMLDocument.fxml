@@ -129,37 +129,37 @@
                                     <panes>
                                         <TitledPane fx:id="framePane" prefHeight="205.0" prefWidth="847.0" visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                                         <TitledPane fx:id="ethernetPane" visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                                         <TitledPane fx:id="ipPane" visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                                         <TitledPane fx:id="transportPane" prefHeight="200.0" prefWidth="200.0" visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                                         <TitledPane fx:id="othersPane" prefHeight="200.0" prefWidth="200.0" visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                                         <TitledPane visible="false">
                                             <content>
-                                                <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                                <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                             </content>
                                         </TitledPane>
                               <TitledPane visible="false">
                                  <content>
-                                    <TextArea prefHeight="200.0" prefWidth="200.0" />
+                                    <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
                                  </content>
                               </TitledPane>
                                     </panes>
