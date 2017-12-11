@@ -84,7 +84,7 @@ public class FXMLDocumentController implements Initializable {
 
     private List<String> allowedProtocols;
     private List<String> allowedIPs;
-    private static final String[] PROTOCOLS = {"TCP", "UDP", "HTTP", "ARP", "DNS", "ICMP"};
+    private static final String[] PROTOCOLS = {"tcp", "udp", "http", "arp", "dns", "icmp"};
     private static final String ipv4Pattern = "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
     //private static final String ipv6Pattern = "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
 
@@ -122,7 +122,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleStartButton(Event event) {
-        this.resetTables();
+        this.resetTable();
         this.resetView();
         capturer = new Capturer(this);
         capturer.getDevices();
@@ -178,7 +178,7 @@ public class FXMLDocumentController implements Initializable {
         }
     }
 
-    private void resetTables() {
+    private void resetTable() {
         tableData.clear();
         filteredTableData.clear();
     }
@@ -235,7 +235,7 @@ public class FXMLDocumentController implements Initializable {
 
     private boolean isProtocolAllowed(String protocol) {
         if (!allowedProtocols.isEmpty()) {
-            return allowedProtocols.contains(protocol);
+            return allowedProtocols.contains(protocol.toLowerCase());
         } else {
             return true;
         }
@@ -270,7 +270,7 @@ public class FXMLDocumentController implements Initializable {
             });
 
         } else {
-            System.out.println(Arrays.toString(row.toArray()));
+            System.out.println(Arrays.toString(row.toArray()));          
         }
     }
 

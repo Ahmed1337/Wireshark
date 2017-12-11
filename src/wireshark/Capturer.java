@@ -150,7 +150,7 @@ public class Capturer {
                                 protocol = "DNS";
                                 StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
                                 System.out.println(dns.toString());
-                                detailedData.append(dns.toString());
+                                //detailedData.append(dns.toString());
                             }
                         } else if (packet.hasHeader(tcp)) {
                             protocol = "TCP";
