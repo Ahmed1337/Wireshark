@@ -112,7 +112,7 @@
                     <children>
                         <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="230.0" prefWidth="917.0">
                             <content>
-                                <TableView fx:id="table" onMouseClicked="#handleTableMouseClick" prefHeight="200.0" prefWidth="915.0">
+                                <TableView fx:id="table" onKeyPressed="#handleTableMouseClick" onKeyReleased="#handleTableMouseClick" onMouseClicked="#handleTableMouseClick" prefHeight="200.0" prefWidth="915.0">
                                     <columns>                             
                                         <TableColumn prefWidth="75.0" text="No.">
                                             <cellValueFactory>

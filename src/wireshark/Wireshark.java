@@ -5,6 +5,7 @@
  */
 package wireshark;
 
+import java.lang.reflect.Field;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -18,8 +19,16 @@ import javafx.stage.Stage;
  */
 public class Wireshark extends Application {
 
+    private void loadDLL() throws Exception {
+        System.setProperty("java.library.path", "lib/");
+        Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+        fieldSysPath.setAccessible(true);
+        fieldSysPath.set(null, null);
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
+        loadDLL();
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
         Scene scene = new Scene(root);
         stage.setScene(scene);
