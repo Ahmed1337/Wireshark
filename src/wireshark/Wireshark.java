@@ -33,7 +33,7 @@ public class Wireshark extends Application {
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.setTitle("WireWhale");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("wireshark.png")));
+        stage.getIcons().add(new Image(getClass().getClassLoader().getResourceAsStream("images/wireshark.png")));
         stage.show();
 
     }
