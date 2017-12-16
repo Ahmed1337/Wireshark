@@ -116,16 +116,15 @@ public class FXMLDocumentController implements Initializable {
         FileChooser fc = new FileChooser();
         File selectedFile = fc.showOpenDialog(null);
         if (selectedFile.exists()) {
-            String fileToOpen = selectedFile.getName();
-            String extension = fileToOpen.substring(fileToOpen.length() - 4);
+            String fileToOpen = selectedFile.getAbsolutePath();
             if (true) {
-                //
+                System.out.println(selectedFile.isFile());
                 ArrayList packetsInFile = this.filesHandler.Load(fileToOpen);
-                //this.addtoTable(packetsInFile);
+                this.addtoTable(packetsInFile);
                 //return data to gui
             } else {
                 //27otaha fe messgebox
-                System.out.println("must open .cap file only");
+                System.out.println("must open .pcap file only");
             }
         } else {
             System.out.println("can't open file");
@@ -133,13 +132,11 @@ public class FXMLDocumentController implements Initializable {
     }
 
     //save in GUI code
-    private void SavingHandler(ActionEvent event) {
-        //make message with yes or no 
-        //save on yes
+    private void SavingHandler(Event event) {
         this.filesHandler.Save(this.capturer.getPcap());
     }
 
-//---------------------------------------------------------------------------    
+//---------------------------------------------------------------------------
     @FXML
     private void handleFilterTextField(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
@@ -179,6 +176,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleStopButton(Event event) {
+        this.SavingHandler(event);
         capturer.stopCapturing();
         disableButtons(false, true);
         ((Stage) container.getScene().getWindow()).setTitle("Stopped capturing");
@@ -248,7 +246,7 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //function that returns a list of devices        
+        //function that returns a list of devices
         captureVBox.setVisible(false);
         container.setPrefSize(devicesVBox.getPrefWidth(), devicesVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
@@ -259,7 +257,6 @@ public class FXMLDocumentController implements Initializable {
         allowedProtocols = new ArrayList();
         allowedIPs = new ArrayList();
         filesHandler = new PacketsSaverAndLoader();
-        
     }
 
     private boolean isIP(String s) {
@@ -297,7 +294,6 @@ public class FXMLDocumentController implements Initializable {
             public void run() {
                 capturer.startCapturing(deviceNumber);
             }
-
         });
         thread.start();
     }

@@ -37,6 +37,9 @@ public class Capturer {
     private double startTimeInSeconds;
     private boolean captureStart = false;
 
+    //to count the number of Captured Packets to save them (for pcap.loop)
+    public static int packetsCounter=0;
+
     protected Capturer(FXMLDocumentController controller) {
         this.controller = controller;
         detailedView = new ArrayList();
@@ -63,8 +66,8 @@ public class Capturer {
     protected List getDevices() {
 
         List devices = new ArrayList();
-        alldevs = new ArrayList(); // Will be filled with NICs  
-        errbuf = new StringBuilder(); // For any error msgs  
+        alldevs = new ArrayList(); // Will be filled with NICs
+        errbuf = new StringBuilder(); // For any error msgs
         int r = Pcap.findAllDevs(alldevs, errbuf);
         if (r == Pcap.ERROR || alldevs.isEmpty()) {
             return null;
@@ -94,9 +97,9 @@ public class Capturer {
     protected void startCapturing(int deviceNum) {
 
         PcapIf device = alldevs.get(deviceNum);
-        int snaplen = 64 * 1024;           // Capture all packets, no trucation  
-        int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
-        int timeout = 60 * 1000;           // 60 seconds in millis  
+        int snaplen = 64 * 1024;           // Capture all packets, no trucation
+        int flags = Pcap.MODE_PROMISCUOUS; // capture all packets
+        int timeout = 60 * 1000;           // 60 seconds in millis
         pcap = Pcap.openLive(device.getName(), snaplen, flags, timeout, errbuf);
 
         if (pcap == null) {
@@ -177,6 +180,8 @@ public class Capturer {
                         row.add(packet.getTotalSize());
                         row.add("");
                         controller.addtoTable(row);
+                        Capturer.packetsCounter++;
+
                     }
 
                     // JFormatterTextFormatter;
@@ -196,5 +201,7 @@ public class Capturer {
     public Pcap getPcap() {
         return pcap;
     }
-    
+
+
+
 }
