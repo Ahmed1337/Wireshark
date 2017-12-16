@@ -6,6 +6,7 @@
 package wireshark;
 
 import java.awt.Color;
+import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -40,6 +41,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+
+//importing menu bar and items
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.event.ActionEvent;
+import javafx.stage.FileChooser;
+import javafx.scene.control.Dialog;
 
 /**
  *
@@ -89,12 +98,48 @@ public class FXMLDocumentController implements Initializable {
     private static final String ipv4Pattern = "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
     //private static final String ipv6Pattern = "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
 
+    //data used for save and load
+    private MenuItem openBtn;
+    private PacketsSaverAndLoader filesHandler;
+
     private void disableButtons(boolean start, boolean stop) {
         startButton.setDisable(start);
         stopButton.setDisable(stop);
         restartButton.setDisable(stop);
     }
+//-------------------------------------------------------------------------------
+    //load in GUI code
 
+    @FXML
+    //private ArrayList OpenMenuItemHandler(ActionEvent event){
+    private void OpenMenuItemHandler(ActionEvent event) {
+        FileChooser fc = new FileChooser();
+        File selectedFile = fc.showOpenDialog(null);
+        if (selectedFile.exists()) {
+            String fileToOpen = selectedFile.getName();
+            String extension = fileToOpen.substring(fileToOpen.length() - 4);
+            if (true) {
+                //
+                ArrayList packetsInFile = this.filesHandler.Load(fileToOpen);
+                //this.addtoTable(packetsInFile);
+                //return data to gui
+            } else {
+                //27otaha fe messgebox
+                System.out.println("must open .cap file only");
+            }
+        } else {
+            System.out.println("can't open file");
+        }
+    }
+
+    //save in GUI code
+    private void SavingHandler(ActionEvent event) {
+        //make message with yes or no 
+        //save on yes
+        this.filesHandler.Save(this.capturer.getPcap());
+    }
+
+//---------------------------------------------------------------------------    
     @FXML
     private void handleFilterTextField(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
@@ -129,14 +174,14 @@ public class FXMLDocumentController implements Initializable {
         capturer.getDevices();
         this.startCapturing();
         disableButtons(true, false);
-        ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
+        ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
     }
 
     @FXML
     private void handleStopButton(Event event) {
         capturer.stopCapturing();
         disableButtons(false, true);
-        ((Stage)container.getScene().getWindow()).setTitle("Stopped capturing");
+        ((Stage) container.getScene().getWindow()).setTitle("Stopped capturing");
     }
 
     @FXML
@@ -159,7 +204,7 @@ public class FXMLDocumentController implements Initializable {
             container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
             container.getScene().getWindow().sizeToScene();
             container.getScene().getWindow().centerOnScreen();
-            ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
+            ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
             container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
@@ -213,6 +258,8 @@ public class FXMLDocumentController implements Initializable {
         devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
         allowedProtocols = new ArrayList();
         allowedIPs = new ArrayList();
+        filesHandler = new PacketsSaverAndLoader();
+        
     }
 
     private boolean isIP(String s) {

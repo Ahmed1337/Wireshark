@@ -193,4 +193,8 @@ public class Capturer {
 
     }
 
+    public Pcap getPcap() {
+        return pcap;
+    }
+    
 }
