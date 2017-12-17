@@ -19,13 +19,14 @@ public class PacketsSaverAndLoader {
     private static int fileNum=1;
     public String fileName;
     private PcapDumper dumper;
-    private PcapHandler<PcapDumper> dumpHandler; //for handling dumping packets
+    private PcapPacketHandler<String> jpacketHandler; //for handling dumping packets
     private StringBuilder offlineErrBuffer = new StringBuilder(); // For any error msgs
 
     public PacketsSaverAndLoader() {
-        this.dumpHandler = new PcapHandler<PcapDumper>() {
-            public void nextPacket(PcapDumper dumper, long seconds, int useconds,int caplen, int len, ByteBuffer buffer) {
-                dumper.dump(seconds, useconds, caplen, len, buffer);
+        this.jpacketHandler = new PcapPacketHandler<String>() {
+            @Override
+            public void nextPacket(PcapPacket packet, String user) {
+                dumper.dump(packet.getCaptureHeader(),packet);
             }
         };
 
@@ -36,7 +37,7 @@ public class PacketsSaverAndLoader {
         this.fileName = "packetsCaptured"+(PacketsSaverAndLoader.fileNum)+".pcap";
         PacketsSaverAndLoader.fileNum++;
         this.dumper = pcap.dumpOpen(this.fileName);
-        pcap.loop(Capturer.packetsCounter,this.dumpHandler, this.dumper);
+        pcap.loop(Capturer.packetsCounter,this.jpacketHandler,"");
         dumper.close();
     }
 
