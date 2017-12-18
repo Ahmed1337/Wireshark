@@ -98,30 +98,22 @@ public class FXMLDocumentController implements Initializable {
     private static final String ipv4Pattern = "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
     //private static final String ipv6Pattern = "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
 
-    //data used for save and load
-    private MenuItem openBtn;
-    private PacketsSaverAndLoader filesHandler;
-
     private void disableButtons(boolean start, boolean stop) {
         startButton.setDisable(start);
         stopButton.setDisable(stop);
         restartButton.setDisable(stop);
     }
-//-------------------------------------------------------------------------------
-    //load in GUI code
 
+    //load in GUI code
     @FXML
-    //private ArrayList OpenMenuItemHandler(ActionEvent event){
     private void OpenMenuItemHandler(ActionEvent event) {
         FileChooser fc = new FileChooser();
         File selectedFile = fc.showOpenDialog(null);
         if (selectedFile.exists()) {
             String fileToOpen = selectedFile.getAbsolutePath();
-            if (true) {
-                System.out.println(selectedFile.isFile());
-                ArrayList packetsInFile = this.filesHandler.Load(fileToOpen);
-                this.addtoTable(packetsInFile);
-                //return data to gui
+            if (fileToOpen.substring(fileToOpen.indexOf(".")).equals(".pcap")) {
+                this.capturer.Load(fileToOpen);
+                //Change interface gui
             } else {
                 //27otaha fe messgebox
                 System.out.println("must open .pcap file only");
@@ -132,11 +124,11 @@ public class FXMLDocumentController implements Initializable {
     }
 
     //save in GUI code
+    @FXML
     private void SavingHandler(Event event) {
-        this.filesHandler.Save(this.capturer.getPcap());
+        this.capturer.Save();
     }
 
-//---------------------------------------------------------------------------
     @FXML
     private void handleFilterTextField(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
@@ -256,7 +248,6 @@ public class FXMLDocumentController implements Initializable {
         devicesList.setItems(FXCollections.observableList(capturer.getDevices()));
         allowedProtocols = new ArrayList();
         allowedIPs = new ArrayList();
-        filesHandler = new PacketsSaverAndLoader();
     }
 
     private boolean isIP(String s) {
