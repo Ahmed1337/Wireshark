@@ -112,10 +112,17 @@ public class FXMLDocumentController implements Initializable {
         if (selectedFile.exists()) {
             String fileToOpen = selectedFile.getAbsolutePath();
             if (fileToOpen.substring(fileToOpen.indexOf(".")).equals(".pcap")) {
-                this.capturer.Load(fileToOpen);
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        capturer.Load(fileToOpen);
+                    }
+                });
+                thread.start();
                 //Change interface gui
             } else {
                 //27otaha fe messgebox
+
                 System.out.println("must open .pcap file only");
             }
         } else {

@@ -203,10 +203,6 @@ public class Capturer {
 
     }
 
-    public Pcap getPcap() {
-        return pcap;
-    }
-
     //save and load
     public void Load(String fromOutsideFilename) {
         StringBuilder offlineErrBuffer = new StringBuilder(); // For any error msgs
@@ -218,7 +214,6 @@ public class Capturer {
             return;
         }
         //3- Create Packet handler ( same for openLive Capturing )
-
         PcapPacketHandler<String> packetsFromFileHandler = new PcapPacketHandler<String>() {
 
             private Ethernet eth = new Ethernet();
@@ -235,10 +230,6 @@ public class Capturer {
             @Override
             public void nextPacket(PcapPacket packet, String user) {
                 try {
-                    if (!packetCaptured) {
-                        pcap.setTimeout(Pcap.DEFAULT_TIMEOUT);
-                        packetCaptured = true;
-                    }
                     String protocol = null;
                     row = new ArrayList();
                     dns = getDnsPacket(packet);
@@ -287,20 +278,16 @@ public class Capturer {
                                 protocol = "ICMP";
                             }
                         }
-
                         row.add(protocol);
                         row.add(packet.getTotalSize());
                         row.add("");
                         controller.addtoTable(row);
-
                     }
-
                     // JFormatterTextFormatter;
                     //System.out.println(detailedData);
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
-
             }
         };
         //capture the Packets
