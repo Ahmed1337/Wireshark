@@ -6,6 +6,7 @@
 package wireshark;
 
 import java.awt.Color;
+import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -40,6 +41,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+
+//importing menu bar and items
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.event.ActionEvent;
+import javafx.stage.FileChooser;
+import javafx.scene.control.Dialog;
 
 /**
  *
@@ -95,6 +104,38 @@ public class FXMLDocumentController implements Initializable {
         restartButton.setDisable(stop);
     }
 
+    //load in GUI code
+    @FXML
+    private void OpenMenuItemHandler(ActionEvent event) {
+        FileChooser fc = new FileChooser();
+        File selectedFile = fc.showOpenDialog(null);
+        if (selectedFile.exists()) {
+            String fileToOpen = selectedFile.getAbsolutePath();
+            if (fileToOpen.substring(fileToOpen.indexOf(".")).equals(".pcap")) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        capturer.Load(fileToOpen);
+                    }
+                });
+                thread.start();
+                //Change interface gui
+            } else {
+                //27otaha fe messgebox
+
+                System.out.println("must open .pcap file only");
+            }
+        } else {
+            System.out.println("can't open file");
+        }
+    }
+
+    //save in GUI code
+    @FXML
+    private void SavingHandler(Event event) {
+        this.capturer.Save();
+    }
+
     @FXML
     private void handleFilterTextField(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
@@ -129,14 +170,15 @@ public class FXMLDocumentController implements Initializable {
         capturer.getDevices();
         this.startCapturing();
         disableButtons(true, false);
-        ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
+        ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
     }
 
     @FXML
     private void handleStopButton(Event event) {
+        this.SavingHandler(event);
         capturer.stopCapturing();
         disableButtons(false, true);
-        ((Stage)container.getScene().getWindow()).setTitle("Stopped capturing");
+        ((Stage) container.getScene().getWindow()).setTitle("Stopped capturing");
     }
 
     @FXML
@@ -159,7 +201,7 @@ public class FXMLDocumentController implements Initializable {
             container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
             container.getScene().getWindow().sizeToScene();
             container.getScene().getWindow().centerOnScreen();
-            ((Stage)container.getScene().getWindow()).setTitle("Capturing packets...");
+            ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
             container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
@@ -203,7 +245,7 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //function that returns a list of devices        
+        //function that returns a list of devices
         captureVBox.setVisible(false);
         container.setPrefSize(devicesVBox.getPrefWidth(), devicesVBox.getPrefHeight() + MENUHEIGHT);
         tableData = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
@@ -250,7 +292,6 @@ public class FXMLDocumentController implements Initializable {
             public void run() {
                 capturer.startCapturing(deviceNumber);
             }
-
         });
         thread.start();
     }

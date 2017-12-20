@@ -20,6 +20,8 @@ import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 import org.jnetpcap.protocol.tcpip.Udp;
 import org.pcap4j.packet.*;
+//for file save and load imports
+import org.jnetpcap.PcapDumper;
 
 /**
  *
@@ -36,6 +38,12 @@ public class Capturer {
     private int number = 0;
     private double startTimeInSeconds;
     private boolean captureStart = false;
+
+    //for files names
+    private static int fileNum = 1;
+
+    //to count the number of Captured Packets to save them (for pcap.loop)
+    public static int packetsCounter = 0;
 
     protected Capturer(FXMLDocumentController controller) {
         this.controller = controller;
@@ -63,8 +71,8 @@ public class Capturer {
     protected List getDevices() {
 
         List devices = new ArrayList();
-        alldevs = new ArrayList(); // Will be filled with NICs  
-        errbuf = new StringBuilder(); // For any error msgs  
+        alldevs = new ArrayList(); // Will be filled with NICs
+        errbuf = new StringBuilder(); // For any error msgs
         int r = Pcap.findAllDevs(alldevs, errbuf);
         if (r == Pcap.ERROR || alldevs.isEmpty()) {
             return null;
@@ -236,9 +244,9 @@ public class Capturer {
     protected void startCapturing(int deviceNum) {
 
         PcapIf device = alldevs.get(deviceNum);
-        int snaplen = 64 * 1024;           // Capture all packets, no trucation  
-        int flags = Pcap.MODE_PROMISCUOUS; // capture all packets  
-        int timeout = 60 * 1000;           // 60 seconds in millis  
+        int snaplen = 64 * 1024;           // Capture all packets, no trucation
+        int flags = Pcap.MODE_PROMISCUOUS; // capture all packets
+        int timeout = 60 * 1000;           // 60 seconds in millis
         pcap = Pcap.openLive(device.getName(), snaplen, flags, timeout, errbuf);
 
         if (pcap == null) {
@@ -319,7 +327,11 @@ public class Capturer {
                         row.add(packet.getTotalSize());
                         row.add(getInfo(number - 1, protocol));
                         controller.addtoTable(row);
+<<<<<<< HEAD
                         System.out.println(detailedView.get(detailedView.size() - 1).toString());
+=======
+                        Capturer.packetsCounter++;
+>>>>>>> 2bdf62ff57aa5ce1ce2d000bc270256269b6e9e8
 
                     }
 
@@ -337,4 +349,108 @@ public class Capturer {
 
     }
 
+    //save and load
+    public void Load(String fromOutsideFilename) {
+        StringBuilder offlineErrBuffer = new StringBuilder(); // For any error msgs
+        //1-load offline fileS
+        Pcap pcapp = Pcap.openOffline(fromOutsideFilename, offlineErrBuffer);
+        //2-check if all OK
+        if (pcapp == null) {
+            System.err.printf("Error while opening device for capture: " + offlineErrBuffer.toString());
+            return;
+        }
+        //3- Create Packet handler ( same for openLive Capturing )
+        PcapPacketHandler<String> packetsFromFileHandler = new PcapPacketHandler<String>() {
+
+            private Ethernet eth = new Ethernet();
+            private Http http = new Http();
+            private Tcp tcp = new Tcp();
+            private Ip4 ip = new Ip4();
+            private Arp arp = new Arp();
+            private Udp udp = new Udp();
+            private Icmp icmp = new Icmp();
+            private DnsPacket dns;
+            private boolean packetCaptured = false;
+            private List row;
+
+            @Override
+            public void nextPacket(PcapPacket packet, String user) {
+                try {
+                    String protocol = null;
+                    row = new ArrayList();
+                    dns = getDnsPacket(packet);
+                    if (packet.hasHeader(eth) && (packet.hasHeader(arp) || (packet.hasHeader(ip) && (packet.hasHeader(icmp) || packet.hasHeader(tcp) || packet.hasHeader(udp))))) {
+                        detailedView.add(new StringBuilder(packet.toString()));
+                        hexaView.add(packet.toHexdump());
+                        row.add(number++);
+                        row.add(((int) ((getCurrentTime() - startTimeInSeconds) * 10000)) / 10000.0);
+
+                        if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
+                            row.add(FormatUtils.mac(eth.source()));
+                            row.add(FormatUtils.mac(eth.destination()));
+                            protocol = "ARP";
+                        } else if (packet.hasHeader(ip)) {
+                            row.add(FormatUtils.ip(ip.source()));
+                            row.add(FormatUtils.ip(ip.destination()));
+                            if (packet.hasHeader(udp)) {
+                                protocol = "UDP";
+                                if (dns != null) {
+                                    protocol = "DNS";
+                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                    detailedData.append("DNS-information" + dns.toString());
+                                }
+                            } else if (packet.hasHeader(tcp)) {
+                                protocol = "TCP";
+                                if (packet.hasHeader(http)) {
+                                    if (!http.isResponse()) {
+                                        protocol = "HTTP";
+                                    } else {
+                                        int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
+                                        if (http.getPayload().length < contentLength) {
+                                            HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
+                                        } else {
+                                            protocol = "HTTP";
+                                        }
+                                    }
+                                }
+                                String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
+                                if (str != null) {
+                                    protocol = "HTTP";
+                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                    detailedData.append("HTTP-reassembly" + str);
+                                    //System.out.println(str);
+                                }
+                            } else if (packet.hasHeader(icmp)) {
+                                protocol = "ICMP";
+                            }
+                        }
+                        row.add(protocol);
+                        row.add(packet.getTotalSize());
+                        row.add("");
+                        controller.addtoTable(row);
+                    }
+                    // JFormatterTextFormatter;
+                    //System.out.println(detailedData);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        };
+        //capture the Packets
+        pcapp.loop(Pcap.LOOP_INFINITE, packetsFromFileHandler, "");
+    }
+
+    public void Save() {
+        String fileName = "packetsCaptured" + (Capturer.fileNum) + ".pcap";
+        Capturer.fileNum++;
+        PcapDumper dumper = this.pcap.dumpOpen(fileName);
+        PcapPacketHandler<String> SavingPacketsHandler = new PcapPacketHandler<String>() {
+            @Override
+            public void nextPacket(PcapPacket packet, String user) {
+                dumper.dump(packet.getCaptureHeader(), packet);
+            }
+        };
+        pcap.loop(Capturer.packetsCounter, SavingPacketsHandler, "");
+        dumper.close();
+    }
 }
