@@ -8,6 +8,9 @@ package wireshark;
 import java.awt.Color;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,33 +110,50 @@ public class FXMLDocumentController implements Initializable {
     //load in GUI code
     @FXML
     private void OpenMenuItemHandler(ActionEvent event) {
-        FileChooser fc = new FileChooser();
-        File selectedFile = fc.showOpenDialog(null);
-        if (selectedFile.exists()) {
-            String fileToOpen = selectedFile.getAbsolutePath();
-            if (fileToOpen.substring(fileToOpen.indexOf(".")).equals(".pcap")) {
+        try {
+            FileChooser fc = new FileChooser();
+            File selectedFile = fc.showOpenDialog(null);
+            if (selectedFile.exists()) {
+                String fileToOpen = selectedFile.getAbsolutePath();
+                //if (fileToOpen.substring(fileToOpen.indexOf(".")).equals(".pcap")) {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        capturer = new Capturer(FXMLDocumentController.this);
                         capturer.Load(fileToOpen);
                     }
                 });
                 thread.start();
+                this.resetTable();
+                this.resetView();
+                disableButtons(true, true);
+                changeView();
+                ((Stage) container.getScene().getWindow()).setTitle(fileToOpen);
                 //Change interface gui
-            } else {
+                //} else {
                 //27otaha fe messgebox
 
-                System.out.println("must open .pcap file only");
+                //    System.out.println("must open .pcap file only");
+                // }
+            } else {
+                System.out.println("can't open file");
             }
-        } else {
-            System.out.println("can't open file");
+        } catch (Exception ex) {
         }
     }
 
     //save in GUI code
     @FXML
     private void SavingHandler(Event event) {
-        this.capturer.Save();
+        try {
+            FileChooser fc = new FileChooser();
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(".pcap", ".pcap"));
+            File selectedFile = fc.showSaveDialog(null);
+            //if (selectedFile.exists()) {
+            File save = new File("capture.pcap");
+            System.out.println(save.renameTo(selectedFile));
+        } catch (Exception ex) {
+        }
     }
 
     @FXML
@@ -175,10 +195,10 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleStopButton(Event event) {
-        this.SavingHandler(event);
         capturer.stopCapturing();
         disableButtons(false, true);
         ((Stage) container.getScene().getWindow()).setTitle("Stopped capturing");
+        this.SavingHandler(event);
     }
 
     @FXML
@@ -196,20 +216,7 @@ public class FXMLDocumentController implements Initializable {
                 return;
             }
             startCapturing();
-            devicesVBox.setVisible(false);
-            captureVBox.setVisible(true);
-            container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
-            container.getScene().getWindow().sizeToScene();
-            container.getScene().getWindow().centerOnScreen();
-            ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
-            container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    capturer.stopCapturing();
-                }
-
-            }
-            );
+            changeView();
         }
     }
 
@@ -353,14 +360,14 @@ public class FXMLDocumentController implements Initializable {
             }
             text = data.substring(index, index = finalIndex);
             text = text.replaceAll(header + ":", "");
-            text = text.replaceAll("\\n\\p{javaSpaceChar}{2,}","\n");
+            text = text.replaceAll("\\n\\p{javaSpaceChar}{2,}", "\n");
             index += header.length() + ((isFrame) ? 2 : 3);
             if (header.equals("Rtp")) {
                 index -= 2;
             }
             if (isFrame) {
-                header += " " + (packetNum+1);
-                text = text.replaceFirst("number = "+ "[0-9]{1,}", "number = "+ (packetNum+1));
+                header += " " + (packetNum + 1);
+                text = text.replaceFirst("number = " + "[0-9]{1,}", "number = " + (packetNum + 1));
             } else {
                 header += temp;
             }
@@ -403,6 +410,23 @@ public class FXMLDocumentController implements Initializable {
             i++;
 
         }
+    }
+
+    private void changeView() {
+        devicesVBox.setVisible(false);
+        captureVBox.setVisible(true);
+        container.setPrefSize(captureVBox.getPrefWidth(), captureVBox.getPrefHeight() + MENUHEIGHT); //majornelson <3
+        container.getScene().getWindow().sizeToScene();
+        container.getScene().getWindow().centerOnScreen();
+        ((Stage) container.getScene().getWindow()).setTitle("Capturing packets...");
+        container.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                capturer.stopCapturing();
+            }
+
+        }
+        );
     }
 
     public static class TableItem {

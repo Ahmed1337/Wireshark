@@ -38,6 +38,9 @@ public class Capturer {
     private int number = 0;
     private double startTimeInSeconds;
     private boolean captureStart = false;
+    private PcapPacketHandler<String> jpacketHandler;
+    public static String fileName = "capture.pcap";
+    private PcapDumper dumper;
 
     //for files names
     private static int fileNum = 1;
@@ -49,6 +52,96 @@ public class Capturer {
         this.controller = controller;
         detailedView = new ArrayList();
         hexaView = new ArrayList();
+        Capturer.fileNum++;
+        jpacketHandler = new PcapPacketHandler<String>() {
+
+            private Ethernet eth = new Ethernet();
+            private Http http = new Http();
+            private Tcp tcp = new Tcp();
+            private Ip4 ip = new Ip4();
+            private Arp arp = new Arp();
+            private Udp udp = new Udp();
+            private Icmp icmp = new Icmp();
+            private DnsPacket dns;
+            private boolean packetCaptured = false;
+            private List row;
+
+            @Override
+            public void nextPacket(PcapPacket packet, String user) {
+                try {
+                    if (!packetCaptured) {
+                        pcap.setTimeout(Pcap.DEFAULT_TIMEOUT);
+                        packetCaptured = true;
+                        dumper = pcap.dumpOpen(fileName);
+                        startTimeInSeconds = getCurrentTime();
+                    }
+                    String protocol = null;
+                    row = new ArrayList();
+                    dns = getDnsPacket(packet);
+                    if (packet.hasHeader(eth) && (packet.hasHeader(arp) || (packet.hasHeader(ip) && (packet.hasHeader(icmp) || packet.hasHeader(tcp) || packet.hasHeader(udp))))) {
+                        detailedView.add(new StringBuilder(packet.toString()));
+                        hexaView.add(packet.toHexdump());
+                        dumper.dump(packet);
+                        row.add(number++ + 1);
+                        row.add(((int) ((getCurrentTime() - startTimeInSeconds) * 10000)) / 10000.0);
+
+                        if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
+                            row.add(FormatUtils.mac(eth.source()));
+                            row.add(FormatUtils.mac(eth.destination()));
+                            protocol = "ARP";
+                        } else if (packet.hasHeader(ip)) {
+                            row.add(FormatUtils.ip(ip.source()));
+                            row.add(FormatUtils.ip(ip.destination()));
+                            if (packet.hasHeader(udp)) {
+                                protocol = "UDP";
+                                if (dns != null) {
+                                    protocol = "DNS";
+                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                    detailedData.append("DNS-information" + dns.toString());
+                                }
+                            } else if (packet.hasHeader(tcp)) {
+                                protocol = "TCP";
+                                if (packet.hasHeader(http)) {
+                                    if (!http.isResponse()) {
+                                        protocol = "HTTP";
+                                    } else {
+                                        int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
+                                        if (http.getPayload().length < contentLength) {
+                                            HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
+                                        } else {
+                                            protocol = "HTTP";
+                                        }
+                                    }
+                                }
+                                String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
+                                if (str != null) {
+                                    protocol = "HTTP";
+                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
+                                    detailedData.append("HTTP-reassembly" + str);
+                                    //System.out.println(str);
+                                }
+                            } else if (packet.hasHeader(icmp)) {
+                                protocol = "ICMP";
+                            }
+                        }
+
+                        row.add(protocol);
+                        row.add(packet.getTotalSize());
+                        row.add(getInfo(number - 1, protocol));
+                        controller.addtoTable(row);
+                        System.out.println(detailedView.get(detailedView.size() - 1).toString());
+                        Capturer.packetsCounter++;
+
+                    }
+
+                    // JFormatterTextFormatter;
+                    //System.out.println(detailedData);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+
+            }
+        };
     }
 
     private double getCurrentTime() {
@@ -89,6 +182,7 @@ public class Capturer {
 
     protected void stopCapturing() {
         pcap.breakloop();
+        dumper.close();
     }
 
     protected String getHex(int packetNum) {
@@ -186,12 +280,14 @@ public class Capturer {
                     index = data.indexOf("Icmp", index);
                     index = data.indexOf("[", index);
                     info += data.substring(index + 1, index = data.indexOf("]\n", index)) + "  ";
-                    index = data.indexOf("id = ");
-                    index = data.indexOf("(", index);
-                    info += "id=" + data.substring(index + 1, index = data.indexOf(")\n", index)) + " ";
-                    index = data.indexOf("sequence = ");
-                    index = data.indexOf("(", index);
-                    info += "seq=" + data.substring(index + 1, index = data.indexOf(")\n", index)) + " ttl=" + ttl;
+                    if ((index = data.indexOf("id = ", index)) > -1) {
+                        index = data.indexOf("(", index);
+                        info += "id=" + data.substring(index + 1, index = data.indexOf(")\n", index)) + " ";
+                        index = data.indexOf("sequence = ");
+                        index = data.indexOf("(", index);
+                        info += "seq=" + data.substring(index + 1, index = data.indexOf(")\n", index));
+                    }
+                    info += " ttl=" + ttl;
                     break;
                 case "ARP":
                     index = data.indexOf("Arp");
@@ -230,9 +326,9 @@ public class Capturer {
                         }
                         info += id;
                     }
-                    index = data.indexOf("QTYPE: ",index);
-                    index = data.indexOf("(",index);
-                    info +=", Type: "+data.substring(index+1,index = data.indexOf("(",index+1));
+                    index = data.indexOf("QTYPE: ", index);
+                    index = data.indexOf("(", index);
+                    info += ", Type: " + data.substring(index + 1, index = data.indexOf("(", index + 1));
                     break;
             }
             return info;
@@ -254,97 +350,6 @@ public class Capturer {
                     + errbuf.toString());
             return;
         }
-        PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
-
-            private Ethernet eth = new Ethernet();
-            private Http http = new Http();
-            private Tcp tcp = new Tcp();
-            private Ip4 ip = new Ip4();
-            private Arp arp = new Arp();
-            private Udp udp = new Udp();
-            private Icmp icmp = new Icmp();
-            private DnsPacket dns;
-            private boolean packetCaptured = false;
-            private List row;
-
-            @Override
-            public void nextPacket(PcapPacket packet, String user) {
-                try {
-                    if (!packetCaptured) {
-                        pcap.setTimeout(Pcap.DEFAULT_TIMEOUT);
-                        packetCaptured = true;
-                    }
-                    String protocol = null;
-                    row = new ArrayList();
-                    dns = getDnsPacket(packet);
-                    if (packet.hasHeader(eth) && (packet.hasHeader(arp) || (packet.hasHeader(ip) && (packet.hasHeader(icmp) || packet.hasHeader(tcp) || packet.hasHeader(udp))))) {
-                        detailedView.add(new StringBuilder(packet.toString()));
-                        hexaView.add(packet.toHexdump());
-                        row.add(number++ + 1);
-                        row.add(((int) ((getCurrentTime() - startTimeInSeconds) * 10000)) / 10000.0);
-
-                        if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
-                            row.add(FormatUtils.mac(eth.source()));
-                            row.add(FormatUtils.mac(eth.destination()));
-                            protocol = "ARP";
-                        } else if (packet.hasHeader(ip)) {
-                            row.add(FormatUtils.ip(ip.source()));
-                            row.add(FormatUtils.ip(ip.destination()));
-                            if (packet.hasHeader(udp)) {
-                                protocol = "UDP";
-                                if (dns != null) {
-                                    protocol = "DNS";
-                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                    detailedData.append("DNS-information" + dns.toString());
-                                }
-                            } else if (packet.hasHeader(tcp)) {
-                                protocol = "TCP";
-                                if (packet.hasHeader(http)) {
-                                    if (!http.isResponse()) {
-                                        protocol = "HTTP";
-                                    } else {
-                                        int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
-                                        if (http.getPayload().length < contentLength) {
-                                            HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
-                                        } else {
-                                            protocol = "HTTP";
-                                        }
-                                    }
-                                }
-                                String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
-                                if (str != null) {
-                                    protocol = "HTTP";
-                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                    detailedData.append("HTTP-reassembly" + str);
-                                    //System.out.println(str);
-                                }
-                            } else if (packet.hasHeader(icmp)) {
-                                protocol = "ICMP";
-                            }
-                        }
-
-                        row.add(protocol);
-                        row.add(packet.getTotalSize());
-                        row.add(getInfo(number - 1, protocol));
-                        controller.addtoTable(row);
-<<<<<<< HEAD
-                        System.out.println(detailedView.get(detailedView.size() - 1).toString());
-=======
-                        Capturer.packetsCounter++;
->>>>>>> 2bdf62ff57aa5ce1ce2d000bc270256269b6e9e8
-
-                    }
-
-                    // JFormatterTextFormatter;
-                    //System.out.println(detailedData);
-                } catch (Exception e) {
-                    System.err.println(e.getMessage());
-                }
-
-            }
-        };
-
-        startTimeInSeconds = getCurrentTime();
         pcap.loop(Pcap.LOOP_INFINITE, jpacketHandler, "");
 
     }
@@ -352,105 +357,16 @@ public class Capturer {
     //save and load
     public void Load(String fromOutsideFilename) {
         StringBuilder offlineErrBuffer = new StringBuilder(); // For any error msgs
-        //1-load offline fileS
-        Pcap pcapp = Pcap.openOffline(fromOutsideFilename, offlineErrBuffer);
+        //1-load offline files
+        pcap = Pcap.openOffline(fromOutsideFilename, offlineErrBuffer);
         //2-check if all OK
-        if (pcapp == null) {
+        if (pcap == null) {
             System.err.printf("Error while opening device for capture: " + offlineErrBuffer.toString());
             return;
         }
-        //3- Create Packet handler ( same for openLive Capturing )
-        PcapPacketHandler<String> packetsFromFileHandler = new PcapPacketHandler<String>() {
 
-            private Ethernet eth = new Ethernet();
-            private Http http = new Http();
-            private Tcp tcp = new Tcp();
-            private Ip4 ip = new Ip4();
-            private Arp arp = new Arp();
-            private Udp udp = new Udp();
-            private Icmp icmp = new Icmp();
-            private DnsPacket dns;
-            private boolean packetCaptured = false;
-            private List row;
-
-            @Override
-            public void nextPacket(PcapPacket packet, String user) {
-                try {
-                    String protocol = null;
-                    row = new ArrayList();
-                    dns = getDnsPacket(packet);
-                    if (packet.hasHeader(eth) && (packet.hasHeader(arp) || (packet.hasHeader(ip) && (packet.hasHeader(icmp) || packet.hasHeader(tcp) || packet.hasHeader(udp))))) {
-                        detailedView.add(new StringBuilder(packet.toString()));
-                        hexaView.add(packet.toHexdump());
-                        row.add(number++);
-                        row.add(((int) ((getCurrentTime() - startTimeInSeconds) * 10000)) / 10000.0);
-
-                        if (packet.hasHeader(arp) && packet.hasHeader(eth)) {
-                            row.add(FormatUtils.mac(eth.source()));
-                            row.add(FormatUtils.mac(eth.destination()));
-                            protocol = "ARP";
-                        } else if (packet.hasHeader(ip)) {
-                            row.add(FormatUtils.ip(ip.source()));
-                            row.add(FormatUtils.ip(ip.destination()));
-                            if (packet.hasHeader(udp)) {
-                                protocol = "UDP";
-                                if (dns != null) {
-                                    protocol = "DNS";
-                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                    detailedData.append("DNS-information" + dns.toString());
-                                }
-                            } else if (packet.hasHeader(tcp)) {
-                                protocol = "TCP";
-                                if (packet.hasHeader(http)) {
-                                    if (!http.isResponse()) {
-                                        protocol = "HTTP";
-                                    } else {
-                                        int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
-                                        if (http.getPayload().length < contentLength) {
-                                            HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
-                                        } else {
-                                            protocol = "HTTP";
-                                        }
-                                    }
-                                }
-                                String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
-                                if (str != null) {
-                                    protocol = "HTTP";
-                                    StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
-                                    detailedData.append("HTTP-reassembly" + str);
-                                    //System.out.println(str);
-                                }
-                            } else if (packet.hasHeader(icmp)) {
-                                protocol = "ICMP";
-                            }
-                        }
-                        row.add(protocol);
-                        row.add(packet.getTotalSize());
-                        row.add("");
-                        controller.addtoTable(row);
-                    }
-                    // JFormatterTextFormatter;
-                    //System.out.println(detailedData);
-                } catch (Exception e) {
-                    System.err.println(e.getMessage());
-                }
-            }
-        };
         //capture the Packets
-        pcapp.loop(Pcap.LOOP_INFINITE, packetsFromFileHandler, "");
+        pcap.loop(Pcap.LOOP_INFINITE, jpacketHandler, "");
     }
 
-    public void Save() {
-        String fileName = "packetsCaptured" + (Capturer.fileNum) + ".pcap";
-        Capturer.fileNum++;
-        PcapDumper dumper = this.pcap.dumpOpen(fileName);
-        PcapPacketHandler<String> SavingPacketsHandler = new PcapPacketHandler<String>() {
-            @Override
-            public void nextPacket(PcapPacket packet, String user) {
-                dumper.dump(packet.getCaptureHeader(), packet);
-            }
-        };
-        pcap.loop(Capturer.packetsCounter, SavingPacketsHandler, "");
-        dumper.close();
-    }
 }
