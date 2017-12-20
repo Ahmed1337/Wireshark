@@ -174,7 +174,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void handleTableMouseClick(Event Click) {
         try {
-            int packetNumber = filteredTableData.get(table.getSelectionModel().getSelectedIndex()).getNo();
+            int packetNumber = filteredTableData.get(table.getSelectionModel().getSelectedIndex()).getNo() - 1;
             setAccordion(getDetailedData(packetNumber));
             hexView.setText(capturer.getHex(packetNumber));
         } catch (Exception e) {
@@ -278,7 +278,7 @@ public class FXMLDocumentController implements Initializable {
     }
 
     protected ArrayList<String[]> getDetailedData(int packetNum) {
-        String data = capturer.getDetailedData(packetNum).trim(), header = null, text = null;
+        String data = capturer.getDetailedData(packetNum), header = null, text = null;
         int index = 0;
         int isDNS = data.indexOf("DNS-information");
         ArrayList<String[]> ret = new ArrayList();
@@ -293,11 +293,12 @@ public class FXMLDocumentController implements Initializable {
             String temp = "";
             if (data.charAt(index + 1) == '\n') {
                 isFrame = true;
+                header = header.substring(1);
                 index++;
             } else {
                 temp += data.substring(index, index = data.indexOf(header + ":", index + 1));
-                temp = temp.substring(0, temp.indexOf("*")) + temp.substring(temp.lastIndexOf("*") + 1, temp.length());
-                index += header.length() + 8;
+                temp = temp.substring(0, temp.indexOf("*")) + temp.substring(temp.lastIndexOf("*") + 1);
+                index += header.length() + 1;
             }
             int finalIndex = 0;
             if (header.equals("Data")) {
@@ -311,12 +312,14 @@ public class FXMLDocumentController implements Initializable {
             }
             text = data.substring(index, index = finalIndex);
             text = text.replaceAll(header + ":", "");
+            text = text.replaceAll("\\n\\p{javaSpaceChar}{2,}","\n");
             index += header.length() + ((isFrame) ? 2 : 3);
             if (header.equals("Rtp")) {
                 index -= 2;
             }
             if (isFrame) {
-                header += (" " + packetNum);
+                header += " " + (packetNum+1);
+                text = text.replaceFirst("number = "+ "[0-9]{1,}", "number = "+ (packetNum+1));
             } else {
                 header += temp;
             }
