@@ -106,6 +106,7 @@ public class Capturer {
                                         protocol = "HTTP";
                                     } else {
                                         int contentLength = Integer.parseInt((http.fieldValue(Http.Response.Content_Length) != null) ? http.fieldValue(Http.Response.Content_Length) : "5555555");
+                                        System.out.println("Content length - "+contentLength);
                                         if (http.getPayload().length < contentLength) {
                                             HttpHandler.initiateHttpPacket(number, tcp.seq(), tcp.getPayloadLength(), contentLength, http.getPayload());
                                         } else {
@@ -115,6 +116,9 @@ public class Capturer {
                                 }
                                 String str = HttpHandler.handleForHttpIfExpected(tcp.seq(), tcp.getPayloadLength(), number, tcp.getPayload());
                                 if (str != null) {
+                                    System.out.println("received" + 
+                                            
+                                            str.length());
                                     protocol = "HTTP";
                                     StringBuilder detailedData = (StringBuilder) detailedView.get(detailedView.size() - 1);
                                     detailedData.append("HTTP-reassembly" + str);
@@ -129,7 +133,7 @@ public class Capturer {
                         row.add(packet.getTotalSize());
                         row.add(getInfo(number - 1, protocol));
                         controller.addtoTable(row);
-                        System.out.println(detailedView.get(detailedView.size() - 1).toString());
+                        //System.out.println(detailedView.get(detailedView.size() - 1).toString());
                         Capturer.packetsCounter++;
 
                     }
